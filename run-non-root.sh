@@ -1,6 +1,6 @@
 #!/bin/sh
 
-function print_help() {
+print_help () {
   echo "Run a command as a non-root user, creating a non-root user if necessary."
   echo
   echo "Usage:"
@@ -10,7 +10,7 @@ function print_help() {
   echo "  -d, --debug              Output debug information;"
   echo "                           using --quiet does not silence debug output."
   echo "  -f, --gname GROUP_NAME   The group name to use when executing the command;"
-  echo "                           the default is non-root-group;"
+  echo "                           the default is nonrootgroup;"
   echo "                           when specified, this option overrides the "
   echo "                           RUN_NON_ROOT_GROUP_NAME environment variable."
   echo "  -g, --gid GROUP_ID       The group ID to use when executing the command;"
@@ -22,7 +22,7 @@ function print_help() {
   echo "  -q, --quiet              Do not output \"Running COMMAND as USER_INFO ...\""
   echo "                           or warnings; this option does not silence debug output."
   echo "  -t, --uname USER_NAME    The user name to use when executing the command;"
-  echo "                           the default is non-root-user;"
+  echo "                           the default is nonrootuser;"
   echo "                           when specified, this option overrides the "
   echo "                           RUN_NON_ROOT_USER_NAME environment variable."
   echo "  -u, --uid USER_ID        The user ID to use when executing the command;"
@@ -39,37 +39,129 @@ function print_help() {
   echo "                           strictly less than 1000;"
   echo "                           the -g or --gid options override this environment variable."
   echo "  RUN_NON_ROOT_GROUP_NAME  The user name to use when executing the command;"
-  echo "                           the default is non-root-group;"
+  echo "                           the default is nonrootgroup;"
   echo "                           the -f or --gname options override this environment variable."
   echo "  RUN_NON_ROOT_USER_ID     The user ID to use when executing the command;"
   echo "                           the default is the first unused user ID"
   echo "                           strictly less than 1000;"
   echo "                           the -u or --uid options override this environment variable."
   echo "  RUN_NON_ROOT_USER_NAME   The user name to use when executing the command;"
-  echo "                           the default is non-root-user;"
+  echo "                           the default is nonrootuser;"
   echo "                           the -t or --uname options override this environment variable."
 }
 
-function apk_add_shadow() {
+apk_add_shadow () {
   local DEBUG=$1
   local QUIET=$2
   if [ -z "${QUIET}" ]; then
-    print_warning "To speed up this command, call \"apk update && apk add shadow=4.5-r0\" before executing this command."
+    print_warning "To speed up this command, call \"apk update && apk add shadow\" before executing this command."
   fi
   if [ ! -z "${DEBUG}" ] || [ -z "${QUIET}" ]; then
-    printf "\n$(output_cyan)Executing$(output_reset) apk update && apk add shadow=4.5-r0 ...\n"
+    printf "\n$(output_cyan)Executing$(output_reset) apk update && apk add shadow ...\n"
   fi
   if [ -z "${QUIET}" ]; then
-    apk update && apk add shadow=4.5-r0
+    apk update && apk add shadow
   else
-    apk update > /dev/null && apk add shadow=4.5-r0 > /dev/null
+    apk update > /dev/null && apk add shadow > /dev/null
   fi
   if [ ! -z "${DEBUG}" ] || [ -z "${QUIET}" ]; then
     printf "$(output_cyan)DONE$(output_reset)\n"
   fi
 }
 
-function check_for_groupadd() {
+apk_add_su_exec () {
+  local DEBUG=$1
+  local QUIET=$2
+  if [ -z "${QUIET}" ]; then
+    print_warning "To speed up this command, call \"apk update && apk add su-exec\" before executing this command."
+  fi
+  if [ ! -z "${DEBUG}" ] || [ -z "${QUIET}" ]; then
+    printf "\n$(output_cyan)Executing$(output_reset) apk update && apk add su-exec ...\n"
+  fi
+  if [ -z "${QUIET}" ]; then
+    apk update && apk add su-exec
+  else
+    apk update > /dev/null && apk add su-exec > /dev/null
+  fi
+  if [ ! -z "${DEBUG}" ] || [ -z "${QUIET}" ]; then
+    printf "$(output_cyan)DONE$(output_reset)\n"
+  fi
+}
+
+apt_get_install_su_exec () {
+  local DEBUG=$1
+  local QUIET=$2
+
+  if [ ! -z "${DEBUG}" ] || [ -z "${QUIET}" ]; then
+    printf "\n$(output_cyan)Executing$(output_reset) apt-get update ...\n"
+  fi
+  if [ -z "${QUIET}" ]; then
+    apt-get update
+  else
+    apt-get update > /dev/null 2>&1
+  fi
+  if [ ! -z "${DEBUG}" ] || [ -z "${QUIET}" ]; then
+    printf "$(output_cyan)DONE$(output_reset)\n"
+  fi
+
+  if [ ! -z "${DEBUG}" ] || [ -z "${QUIET}" ]; then
+    printf "\n$(output_cyan)Executing$(output_reset) apt-get install -y curl gcc make unzip ...\n"
+  fi
+  if [ -z "${QUIET}" ]; then
+    apt-get install -y curl gcc make unzip
+  else
+    apt-get install -y curl gcc make unzip > /dev/null 2>&1
+  fi
+  if [ ! -z "${DEBUG}" ] || [ -z "${QUIET}" ]; then
+    printf "$(output_cyan)DONE$(output_reset)\n"
+  fi
+
+  if [ ! -z "${DEBUG}" ] || [ -z "${QUIET}" ]; then
+    printf "\n$(output_cyan)Executing$(output_reset) curl -L https://github.com/ncopa/su-exec/archive/dddd1567b7c76365e1e0aac561287975020a8fad.zip -o su-exec.zip ...\n"
+  fi
+  if [ -z "${QUIET}" ]; then
+    curl -L https://github.com/ncopa/su-exec/archive/dddd1567b7c76365e1e0aac561287975020a8fad.zip -o su-exec.zip
+  else
+    curl --silent -L https://github.com/ncopa/su-exec/archive/dddd1567b7c76365e1e0aac561287975020a8fad.zip -o su-exec.zip
+  fi
+  if [ ! -z "${DEBUG}" ] || [ -z "${QUIET}" ]; then
+    printf "$(output_cyan)DONE$(output_reset)\n"
+  fi
+
+  if [ ! -z "${DEBUG}" ] || [ -z "${QUIET}" ]; then
+    printf "\n$(output_cyan)Installing$(output_reset) su-exec ...\n"
+  fi
+  if [ -z "${QUIET}" ]; then
+    unzip su-exec.zip
+    cd su-exec-dddd1567b7c76365e1e0aac561287975020a8fad
+    make
+    mv su-exec /usr/local/bin
+    cd ..
+    rm -rf su-exec-dddd1567b7c76365e1e0aac561287975020a8fad
+  else
+    unzip su-exec.zip > /dev/null
+    cd su-exec-dddd1567b7c76365e1e0aac561287975020a8fad
+    make > /dev/null
+    mv su-exec /usr/local/bin
+    cd ..
+    rm -rf su-exec-dddd1567b7c76365e1e0aac561287975020a8fad
+  fi
+  if [ ! -z "${DEBUG}" ] || [ -z "${QUIET}" ]; then
+    printf "$(output_cyan)DONE$(output_reset)\n"
+  fi
+}
+
+check_for_getopt () {
+  command -v getopt > /dev/null
+  if [ $? -ne 0 ]; then
+    command -v yum > /dev/null
+    if [ $? -eq 0 ]; then
+      yum install -y util-linux-ng > /dev/null 2>&1
+    fi
+  fi
+}
+
+check_for_groupadd () {
   local DEBUG=$1
   local QUIET=$2
   command -v groupadd > /dev/null
@@ -81,7 +173,7 @@ function check_for_groupadd() {
   fi
 }
 
-function check_for_useradd() {
+check_for_useradd () {
   local DEBUG=$1
   local QUIET=$2
   command -v useradd > /dev/null
@@ -106,35 +198,77 @@ function check_for_useradd() {
   fi
 }
 
-function determine_group_id() {
+check_for_su_exec () {
+  local DEBUG=$1
+  local QUIET=$2
+  command -v su-exec > /dev/null
+  if [ $? -ne 0 ]; then
+
+    # "Package Management Basics: apt, yum, dnf, pkg"
+    # https://www.digitalocean.com/community/tutorials/package-management-basics-apt-yum-dnf-pkg.
+
+    command -v apk > /dev/null
+    if [ $? -eq 0 ]; then
+      apk_add_su_exec "${DEBUG}" "${QUIET}"
+      return $?
+    fi
+    command -v apt-get > /dev/null
+    if [ $? -eq 0 ]; then
+      apt_get_install_su_exec "${DEBUG}" "${QUIET}"
+      return $?
+    fi
+    command -v yum > /dev/null
+    if [ $? -eq 0 ]; then
+      yum_install_su_exec "${DEBUG}" "${QUIET}"
+      return $?
+    fi
+  fi
+}
+
+determine_group_id () {
   local RETURN_VALUE=$1
   local DEBUG=$2
   # The eval at the end does not work if we use GROUP_ID.
   local LOCAL_GROUP_ID=$3
   local GROUP_NAME=$4
   local QUIET=$5
+  local USER_ID=$6
+  local USER_NAME=$7
 
   exists_group_id "${LOCAL_GROUP_ID}"
   local GROUP_ID_EXISTS=$?
 
-  getent group "${GROUP_NAME}" &> /dev/null
+  getent group "${GROUP_NAME}" > /dev/null 2>&1
   local GROUP_NAME_EXISTS=$?
 
+  exists_user_id "${USER_ID}"
+  local USER_ID_EXISTS=$?
+
+  getent passwd "${USER_NAME}" > /dev/null 2>&1
+  local USER_NAME_EXISTS=$?
+
   if [ "${GROUP_ID_EXISTS}" -ne 0 ] && [ "${GROUP_NAME_EXISTS}" -ne 0 ]; then
-    # Find a group ID that does not exist starting from 999.
-    if [ -z "${LOCAL_GROUP_ID}" ]; then
-      find_unused_group_id LOCAL_GROUP_ID
-    fi
-    check_for_groupadd "${DEBUG}" "${QUIET}"
-    if [ ! -z "${DEBUG}" ]; then
-      printf "\n$(output_cyan)Executing$(output_reset) groupadd --gid \"${LOCAL_GROUP_ID}\" \"${GROUP_NAME}\" ... "
-    fi
-    groupadd --gid "${LOCAL_GROUP_ID}" "${GROUP_NAME}"
-    if [ $? -ne 0 ]; then
-      exit_with_error 4 "We could not add the group ${GROUP_NAME} with ID ${LOCAL_GROUP_ID}."
-    fi
-    if [ ! -z "${DEBUG}" ]; then
-      printf "$(output_cyan)DONE$(output_reset)\n"
+    if [ "${USER_ID_EXISTS}" -ne 0 ] && [ "${USER_NAME_EXISTS}" -ne 0 ]; then
+      # Find a group ID that does not exist starting from 999.
+      if [ -z "${LOCAL_GROUP_ID}" ]; then
+        find_unused_group_id LOCAL_GROUP_ID
+      fi
+      check_for_groupadd "${DEBUG}" "${QUIET}"
+      if [ ! -z "${DEBUG}" ]; then
+        printf "\n$(output_cyan)Executing$(output_reset) groupadd --gid \"${LOCAL_GROUP_ID}\" \"${GROUP_NAME}\" ... "
+      fi
+      groupadd --gid "${LOCAL_GROUP_ID}" "${GROUP_NAME}"
+      if [ $? -ne 0 ]; then
+        exit_with_error 4 "We could not add the group ${GROUP_NAME} with ID ${LOCAL_GROUP_ID}."
+      fi
+      if [ ! -z "${DEBUG}" ]; then
+        printf "$(output_cyan)DONE$(output_reset)\n"
+      fi
+    elif [ "${USER_ID_EXISTS}" -ne 0 ]; then
+      LOCAL_GROUP_ID=`id -g ${USER_NAME}`
+    else
+      # Using id with a UID does not work in Alpine Linux.
+      LOCAL_GROUP_ID=`getent passwd ${USER_ID} | awk -F ":" '{print $4}'`
     fi
   elif [ "${GROUP_ID_EXISTS}" -ne 0 ]; then
     LOCAL_GROUP_ID=`getent group ${GROUP_NAME} | awk -F ":" '{print $3}'`
@@ -143,20 +277,20 @@ function determine_group_id() {
   eval $RETURN_VALUE="'${LOCAL_GROUP_ID}'"
 }
 
-function determine_user_name() {
+determine_user_name () {
   local RETURN_VALUE=$1
   local DEBUG=$2
-  local USER_ID=$3
+  local GROUP_ID=$3
+  local QUIET=$4
+  local USER_ID=$5
   # The eval at the end (might) not work if we use USER_NAME.
   # See determine_group_id and its LOCAL_GROUP_ID.
-  local LOCAL_USER_NAME=$4
-  local GROUP_ID=$5
-  local QUIET=$6
+  local LOCAL_USER_NAME=$6
 
   exists_user_id "${USER_ID}"
   local USER_ID_EXISTS=$?
 
-  getent passwd "${LOCAL_USER_NAME}" &> /dev/null
+  getent passwd "${LOCAL_USER_NAME}" > /dev/null 2>&1
   local USER_NAME_EXISTS=$?
 
   if [ "${USER_ID_EXISTS}" -ne 0 ] && [ "${USER_NAME_EXISTS}" -ne 0 ]; then
@@ -168,7 +302,7 @@ function determine_user_name() {
     # In alpine:3.7, useradd set the shell to /bin/bash even though it doesn't exist.
     # As such, we set "--shell sh".
     if [ ! -z "${DEBUG}" ]; then
-      printf "\n$(output_cyan)Executing$(output_reset) useradd\n"
+      printf "\n$(output_cyan)Executing$(output_reset) useradd \\ \n"
       printf "  --create-home \\ \n"
       printf "  --gid \"${GROUP_ID}\" \\ \n"
       printf "  --no-log-init \\ \n"
@@ -192,43 +326,44 @@ function determine_user_name() {
   elif [ "${USER_ID_EXISTS}" -ne 0 ]; then
     USER_ID=`id -u ${LOCAL_USER_NAME}`
   else
+    # Using id with a UID does not work in Alpine Linux.
     LOCAL_USER_NAME=`getent passwd ${USER_ID} | awk -F ":" '{print $1}'`
   fi
 
   eval $RETURN_VALUE="'${LOCAL_USER_NAME}'"
 }
 
-function exists_group_id() {
+exists_group_id () {
   local GROUP_ID=$1
   if [ -z "${GROUP_ID}" ]; then
     return 1
   else
-    getent group "${GROUP_ID}" &> /dev/null
+    getent group "${GROUP_ID}" > /dev/null 2>&1
   fi
 }
 
-function exists_user_id() {
+exists_user_id () {
   local USER_ID=$1
   if [ -z "${USER_ID}" ]; then
     return 1
   else
-    getent passwd "${USER_ID}" &> /dev/null
+    getent passwd "${USER_ID}" > /dev/null 2>&1
   fi
 }
 
-function exit_with_error() {
+exit_with_error () {
   local EXIT_CODE=$1
   local MESSAGE=$2
   (>&2 echo "$(output_red)$(output_bold)ERROR (${EXIT_CODE}):$(output_reset)$(output_red) ${MESSAGE}$(output_reset)")
   exit ${EXIT_CODE}
 }
 
-function find_unused_group_id() {
+find_unused_group_id () {
   local RETURN_VALUE=$1
   local ID=999
   local UNUSED_GROUP_ID
   while [ -z "${UNUSED_GROUP_ID}" ] && [ "$ID" -gt 0 ]; do
-    getent group "${ID}" &> /dev/null
+    getent group "${ID}" > /dev/null 2>&1
     if [ $? -ne 0 ]; then
       UNUSED_GROUP_ID="${ID}"
     fi
@@ -240,12 +375,12 @@ function find_unused_group_id() {
   eval $RETURN_VALUE="'${UNUSED_GROUP_ID}'"
 }
 
-function find_unused_user_id() {
+find_unused_user_id () {
   local RETURN_VALUE=$1
   local ID=999
   local UNUSED_USER_ID
   while [ -z "${UNUSED_USER_ID}" ] && [ "$ID" -gt 0 ]; do
-    getent passwd "${ID}" &> /dev/null
+    getent passwd "${ID}" > /dev/null 2>&1
     if [ $? -ne 0 ]; then
       UNUSED_USER_ID="${ID}"
     fi
@@ -257,38 +392,44 @@ function find_unused_user_id() {
   eval $RETURN_VALUE="'${UNUSED_USER_ID}'"
 }
 
-function local_tput() {
-  type tput &> /dev/null
+local_tput () {
+  # "No value for $TERM and no -T specified"
+  # https://askubuntu.com/questions/591937/no-value-for-term-and-no-t-specified
+  tty -s > /dev/null 2>&1
+  if [ ! $? -eq 0 ]; then
+    return 0
+  fi
+  command -v tput > /dev/null 2>&1
   if [ $? -eq 0 ]; then
     tput $@
   fi
 }
 
-function output_bold() {
+output_bold () {
   local_tput bold
 }
 
-function output_cyan() {
+output_cyan () {
   local_tput setaf 6
 }
 
-function output_green() {
+output_green () {
   local_tput setaf 2
 }
 
-function output_red() {
+output_red () {
   local_tput setaf 1
 }
 
-function output_reset() {
+output_reset () {
   local_tput sgr0
 }
 
-function output_yellow() {
+output_yellow () {
   local_tput setaf 3
 }
 
-function print_exit_code() {
+print_exit_code () {
   local DEBUG=$1
   local EXIT_CODE=$2
   local QUIET=$3
@@ -301,23 +442,21 @@ function print_exit_code() {
   fi
 }
 
-function print_warning() {
+print_warning () {
   printf "\n$(output_yellow)$(output_bold)WARNING:$(output_reset)$(output_yellow) $1$(output_reset)\n"
 }
 
-function run_as_current_user() {
+run_as_current_user () {
   local COMMAND=${1:-sh}
   local QUIET=$2
   if [ ! -z "${DEBUG}" ] || [ -z ${QUIET} ]; then
-    printf "\n$(output_green)Running $(output_bold)${COMMAND}$(output_reset)$(output_green) as $(id $(id -nu)) ...\n\n$(output_reset)"
+    print_warning "This container is already running as a non-root user. We have ignored all group and user options."
+    printf "\n$(output_green)Running $(output_bold)${COMMAND}$(output_reset)$(output_green) as $(id) ...\n\n$(output_reset)"
   fi
-  eval "${COMMAND}"
-  local EXIT_CODE=$?
-  print_exit_code "${DEBUG}" "${EXIT_CODE}" "${QUIET}"
-  exit ${EXIT_CODE}
+  exec ${COMMAND}
 }
 
-function run_as_non_root_user() {
+run_as_non_root_user () {
 
   # "Best practices for writing Dockerfiles"
   # https://docs.docker.com/develop/develop-images/dockerfile_best-practices/
@@ -335,34 +474,38 @@ function run_as_non_root_user() {
   local COMMAND=${1:-sh}
   local DEBUG=$2
   local GROUP_ID=$3
-  local GROUP_NAME=${4:-non-root-group}
+  local GROUP_NAME=${4:-nonrootgroup}
   local QUIET=$5
   local USER_ID=$6
-  local USER_NAME=${7:-non-root-user}
+  local USER_NAME=${7:-nonrootuser}
 
   # "Returning Values from Bash Functions"
   # https://www.linuxjournal.com/content/return-values-bash-functions
 
-  determine_group_id GROUP_ID "${DEBUG}" "${GROUP_ID}" "${GROUP_NAME}" "${QUIET}"
-  determine_user_name USER_NAME "${DEBUG}" "${USER_ID}" "${USER_NAME}" "${GROUP_ID}" "${QUIET}"
+  determine_group_id \
+    GROUP_ID \
+    "${DEBUG}" \
+    "${GROUP_ID}" \
+    "${GROUP_NAME}" \
+    "${QUIET}" \
+    "${USER_ID}" \
+    "${USER_NAME}"
+  determine_user_name \
+    USER_NAME \
+    "${DEBUG}" \
+    "${GROUP_ID}" \
+    "${QUIET}" \
+    "${USER_ID}" \
+    "${USER_NAME}"
 
+  check_for_su_exec "${DEBUG}" "${QUIET}"
   if [ ! -z "${DEBUG}" ] || [ -z ${QUIET} ]; then
-    su --command "printf \"\n$(output_green)Running $(output_bold)${COMMAND}$(output_reset)$(output_green) as \$(id \$(id -nu)) ...\n\n$(output_reset)\"" "${USER_NAME}"
+    printf "\n$(output_green)Running ( su-exec \"${USER_NAME}:${GROUP_ID}\" $(output_bold)${COMMAND}$(output_reset)$(output_green) ) as $(id ${USER_NAME}) ...\n\n$(output_reset)"
   fi
-  if [ "${COMMAND}" = "sh" ]; then
-    su "${USER_NAME}"
-    local EXIT_CODE=$?
-    print_exit_code "${DEBUG}" "${EXIT_CODE}" "${QUIET}"
-    exit ${EXIT_CODE}
-  else
-    su --command "${COMMAND}" "${USER_NAME}"
-    local EXIT_CODE=$?
-    print_exit_code "${DEBUG}" "${EXIT_CODE}" "${QUIET}"
-    exit ${EXIT_CODE}
-  fi
+  exec su-exec "${USER_NAME}:${GROUP_ID}" ${COMMAND}
 }
 
-function run_non_root() {
+run_non_root () {
   local COMMAND=$1
   local DEBUG=$2
   local GROUP_ID=$3
@@ -385,9 +528,61 @@ function run_non_root() {
   fi
 }
 
+yum_install_su_exec () {
+  local DEBUG=$1
+  local QUIET=$2
+
+  if [ ! -z "${DEBUG}" ] || [ -z "${QUIET}" ]; then
+    printf "\n$(output_cyan)Executing$(output_reset) yum install -y gcc make unzip ...\n"
+  fi
+  if [ -z "${QUIET}" ]; then
+    yum install -y gcc make unzip
+  else
+    yum install -y gcc make unzip > /dev/null 2>&1
+  fi
+  if [ ! -z "${DEBUG}" ] || [ -z "${QUIET}" ]; then
+    printf "$(output_cyan)DONE$(output_reset)\n"
+  fi
+
+  if [ ! -z "${DEBUG}" ] || [ -z "${QUIET}" ]; then
+    printf "\n$(output_cyan)Executing$(output_reset) curl -L https://github.com/ncopa/su-exec/archive/dddd1567b7c76365e1e0aac561287975020a8fad.zip -o su-exec.zip ...\n"
+  fi
+  if [ -z "${QUIET}" ]; then
+    curl -L https://github.com/ncopa/su-exec/archive/dddd1567b7c76365e1e0aac561287975020a8fad.zip -o su-exec.zip
+  else
+    curl --silent -L https://github.com/ncopa/su-exec/archive/dddd1567b7c76365e1e0aac561287975020a8fad.zip -o su-exec.zip
+  fi
+  if [ ! -z "${DEBUG}" ] || [ -z "${QUIET}" ]; then
+    printf "$(output_cyan)DONE$(output_reset)\n"
+  fi
+
+  if [ ! -z "${DEBUG}" ] || [ -z "${QUIET}" ]; then
+    printf "\n$(output_cyan)Installing$(output_reset) su-exec ...\n"
+  fi
+  if [ -z "${QUIET}" ]; then
+    unzip su-exec.zip
+    cd su-exec-dddd1567b7c76365e1e0aac561287975020a8fad
+    make
+    mv su-exec /usr/local/bin
+    cd ..
+    rm -rf su-exec-dddd1567b7c76365e1e0aac561287975020a8fad
+  else
+    unzip su-exec.zip > /dev/null
+    cd su-exec-dddd1567b7c76365e1e0aac561287975020a8fad
+    make > /dev/null
+    mv su-exec /usr/local/bin
+    cd ..
+    rm -rf su-exec-dddd1567b7c76365e1e0aac561287975020a8fad
+  fi
+  if [ ! -z "${DEBUG}" ] || [ -z "${QUIET}" ]; then
+    printf "$(output_cyan)DONE$(output_reset)\n"
+  fi
+}
+
 # "How do I parse command line arguments in Bash?"
 # https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash
 
+check_for_getopt
 RUN_NON_ROOT_PARSED_OPTIONS=`getopt --options=df:g:hqt:u: --longoptions=debug,gid:,gname:,help,quiet,uid:,uname: --name "$0" -- "$@"`
 if [ $? -ne 0 ]; then
   exit 1

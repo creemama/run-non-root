@@ -16,8 +16,8 @@ Options:
   -d, --debug              Output debug information; using --quiet does not
                            silence debug output.
   -f, --gname GROUP_NAME   The group name to use when executing the command;
-                           the default is nonrootgroup; this option is ignored
-                           if we are already running as a non-root user; when
+                           the default is nonroot; this option is ignored if we
+                           are already running as a non-root user; when
                            specified, this option overrides the
                            RUN_NON_ROOT_GROUP_NAME environment variable.
   -g, --gid GROUP_ID       The group ID to use when executing the command;
@@ -31,10 +31,10 @@ Options:
                            or warnings; this option does not silence --debug
                            output.
   -t, --uname USERNAME     The username to use when executing the command; the
-                           default is nonrootuser; this option is ignored if we
-                           are already running as a non-root user; when
-                           specified, this option overrides the
-                           RUN_NON_ROOT_USERNAME environment variable.
+                           default is nonroot; this option is ignored if we are
+                           already running as a non-root user; when specified,
+                           this option overrides the RUN_NON_ROOT_USERNAME
+                           environment variable.
   -u, --uid USER_ID        The user ID to use when executing the command;
                            the default is the first unused user ID strictly
                            less than 1000; this option is ignored if we are
@@ -51,18 +51,18 @@ Environment Variables:
                            already running as a non-root user; the -g and --gid
                            options override this environment variable.
   RUN_NON_ROOT_GROUP_NAME  The group name to use when executing the command;
-                           the default is nonrootgroup; this variable is
-                           ignored if we are already running as a non-root
-                           user; the -f and --gname options override this
-                           environment variable.
+                           the default is nonroot; this variable is ignored if
+                           we are already running as a non-root user; the -f
+                           and --gname options override this environment
+                           variable.
   RUN_NON_ROOT_USER_ID     The user ID to use when executing the command; the
                            default is the first unused user ID strictly less
                            than 1000; this variable is ignored if we are
                            already running as a non-root user; the -u and --uid
                            options override this environment variable.
   RUN_NON_ROOT_USERNAME    The username to use when executing the command; the
-                           default is nonrootuser; this option is ignored if we
-                           are already running as a non-root user; the -t and
+                           default is nonroot; this option is ignored if we are
+                           already running as a non-root user; the -t and
                            --uname options override this environment variable.
 
 Examples:

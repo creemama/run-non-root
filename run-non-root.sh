@@ -8,8 +8,8 @@ print_help () {
   echo "  -d, --debug              Output debug information; using --quiet does not"
   echo "                           silence debug output."
   echo "  -f, --gname GROUP_NAME   The group name to use when executing the command;"
-  echo "                           the default is nonrootgroup; this option is ignored"
-  echo "                           if we are already running as a non-root user; when"
+  echo "                           the default is nonroot; this option is ignored if we"
+  echo "                           are already running as a non-root user; when"
   echo "                           specified, this option overrides the"
   echo "                           RUN_NON_ROOT_GROUP_NAME environment variable."
   echo "  -g, --gid GROUP_ID       The group ID to use when executing the command;"
@@ -23,10 +23,10 @@ print_help () {
   echo "                           or warnings; this option does not silence --debug"
   echo "                           output."
   echo "  -t, --uname USERNAME     The username to use when executing the command; the"
-  echo "                           default is nonrootuser; this option is ignored if we"
-  echo "                           are already running as a non-root user; when"
-  echo "                           specified, this option overrides the"
-  echo "                           RUN_NON_ROOT_USERNAME environment variable."
+  echo "                           default is nonroot; this option is ignored if we are"
+  echo "                           already running as a non-root user; when specified,"
+  echo "                           this option overrides the RUN_NON_ROOT_USERNAME"
+  echo "                           environment variable."
   echo "  -u, --uid USER_ID        The user ID to use when executing the command;"
   echo "                           the default is the first unused user ID strictly"
   echo "                           less than 1000; this option is ignored if we are"
@@ -43,18 +43,18 @@ print_help () {
   echo "                           already running as a non-root user; the -g and --gid"
   echo "                           options override this environment variable."
   echo "  RUN_NON_ROOT_GROUP_NAME  The group name to use when executing the command;"
-  echo "                           the default is nonrootgroup; this variable is"
-  echo "                           ignored if we are already running as a non-root"
-  echo "                           user; the -f and --gname options override this"
-  echo "                           environment variable."
+  echo "                           the default is nonroot; this variable is ignored if"
+  echo "                           we are already running as a non-root user; the -f"
+  echo "                           and --gname options override this environment"
+  echo "                           variable."
   echo "  RUN_NON_ROOT_USER_ID     The user ID to use when executing the command; the"
   echo "                           default is the first unused user ID strictly less"
   echo "                           than 1000; this variable is ignored if we are"
   echo "                           already running as a non-root user; the -u and --uid"
   echo "                           options override this environment variable."
   echo "  RUN_NON_ROOT_USERNAME    The username to use when executing the command; the"
-  echo "                           default is nonrootuser; this option is ignored if we"
-  echo "                           are already running as a non-root user; the -t and"
+  echo "                           default is nonroot; this option is ignored if we are"
+  echo "                           already running as a non-root user; the -t and"
   echo "                           --uname options override this environment variable."
   echo
   echo "Examples:"
@@ -500,10 +500,10 @@ run_as_non_root_user () {
   local COMMAND=${1:-sh}
   local DEBUG=$2
   local GROUP_ID=$3
-  local GROUP_NAME=${4:-nonrootgroup}
+  local GROUP_NAME=${4:-nonroot}
   local QUIET=$5
   local USER_ID=$6
-  local USERNAME=${7:-nonrootuser}
+  local USERNAME=${7:-nonroot}
 
   # "Returning Values from Bash Functions"
   # https://www.linuxjournal.com/content/return-values-bash-functions

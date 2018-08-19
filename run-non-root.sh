@@ -245,22 +245,14 @@ determine_group_id () {
   local DEBUG=$2
   # The eval at the end does not work if we use GID.
   local local_gid=$3
-  local GROUP_NAME=$4
-  local QUIET=$5
-  local uid=$6
-  local USERNAME=$7
-
-  exists_group_id "${local_gid}"
-  local gid_exists=$?
-
-  getent group "${GROUP_NAME}" > /dev/null 2>&1
-  local GROUP_NAME_EXISTS=$?
-
-  exists_user_id "${uid}"
-  local uid_exists=$?
-
-  getent passwd "${USERNAME}" > /dev/null 2>&1
-  local USERNAME_EXISTS=$?
+  local gid_exists=$4
+  local GROUP_NAME=$5
+  local GROUP_NAME_EXISTS=$6
+  local QUIET=$7
+  local uid=$8
+  local uid_exists=$9
+  local USERNAME=${10}
+  local USERNAME_EXISTS=${11}
 
   if [ "${gid_exists}" -ne 0 ] && [ "${GROUP_NAME_EXISTS}" -ne 0 ]; then
     if [ "${uid_exists}" -ne 0 ] && [ "${USERNAME_EXISTS}" -ne 0 ]; then
@@ -300,15 +292,11 @@ determine_username () {
   local gid=$3
   local QUIET=$4
   local uid=$5
+  local uid_exists=$6
   # The eval at the end (might) not work if we use USERNAME.
   # See determine_group_id and its local_gid.
-  local LOCAL_USERNAME=$6
-
-  exists_user_id "${uid}"
-  local uid_exists=$?
-
-  getent passwd "${LOCAL_USERNAME}" > /dev/null 2>&1
-  local USERNAME_EXISTS=$?
+  local LOCAL_USERNAME=$7
+  local USERNAME_EXISTS=$8
 
   if [ "${uid_exists}" -ne 0 ] && [ "${USERNAME_EXISTS}" -ne 0 ]; then
     # Find a user ID that does not exist starting from 999.
@@ -498,6 +486,18 @@ run_as_non_root_user () {
   local uid=$6
   local USERNAME=${7:-nonroot}
 
+  exists_group_id "${gid}"
+  local gid_exists=$?
+
+  getent group "${GROUP_NAME}" > /dev/null 2>&1
+  local GROUP_NAME_EXISTS=$?
+
+  exists_user_id "${uid}"
+  local uid_exists=$?
+
+  getent passwd "${USERNAME}" > /dev/null 2>&1
+  local USERNAME_EXISTS=$?
+
   # "Returning Values from Bash Functions"
   # https://www.linuxjournal.com/content/return-values-bash-functions
 
@@ -505,17 +505,23 @@ run_as_non_root_user () {
     gid \
     "${DEBUG}" \
     "${gid}" \
+    "${gid_exists}" \
     "${GROUP_NAME}" \
+    "${GROUP_NAME_EXISTS}" \
     "${QUIET}" \
     "${uid}" \
-    "${USERNAME}"
+    "${uid_exists}" \
+    "${USERNAME}" \
+    "${USERNAME_EXISTS}"
   determine_username \
     USERNAME \
     "${DEBUG}" \
     "${gid}" \
     "${QUIET}" \
     "${uid}" \
-    "${USERNAME}"
+    "${uid_exists}" \
+    "${USERNAME}" \
+    "${USERNAME_EXISTS}"
 
   check_for_su_exec "${DEBUG}" "${QUIET}"
   if [ ! -z "${DEBUG}" ] || [ -z ${QUIET} ]; then

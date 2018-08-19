@@ -12,11 +12,11 @@ print_help () {
   echo "                           are already running as a non-root user; when"
   echo "                           specified, this option overrides the"
   echo "                           RUN_NON_ROOT_GROUP_NAME environment variable."
-  echo "  -g, --gid GROUP_ID       The group ID to use when executing the command;"
+  echo "  -g, --gid GID            The group ID to use when executing the command;"
   echo "                           the default is the first unused group ID strictly"
   echo "                           less than 1000; this option is ignored if we are"
   echo "                           already running as a non-root user; when specified,"
-  echo "                           this option overrides the RUN_NON_ROOT_GROUP_ID"
+  echo "                           this option overrides the RUN_NON_ROOT_GID"
   echo "                           environment variable."
   echo "  -h, --help               Output this help message and exit."
   echo "  -q, --quiet              Do not output \"Running ( COMMAND ) as USER_INFO ...\""
@@ -27,17 +27,17 @@ print_help () {
   echo "                           already running as a non-root user; when specified,"
   echo "                           this option overrides the RUN_NON_ROOT_USERNAME"
   echo "                           environment variable."
-  echo "  -u, --uid USER_ID        The user ID to use when executing the command;"
+  echo "  -u, --uid UID            The user ID to use when executing the command;"
   echo "                           the default is the first unused user ID strictly"
   echo "                           less than 1000; this option is ignored if we are"
   echo "                           already running as a non-root user; when specified,"
-  echo "                           this option overrides the RUN_NON_ROOT_USER_ID"
+  echo "                           this option overrides the RUN_NON_ROOT_UID"
   echo "                           environment variable."
   echo
   echo "Environment Variables:"
   echo "  RUN_NON_ROOT_COMMAND     The command to execute if a command is not given;"
   echo "                           the default is sh."
-  echo "  RUN_NON_ROOT_GROUP_ID    The group ID to use when executing the command; the"
+  echo "  RUN_NON_ROOT_GID         The group ID to use when executing the command; the"
   echo "                           default is the first unused group ID strictly less"
   echo "                           than 1000; this variable is ignored if we are"
   echo "                           already running as a non-root user; the -g and --gid"
@@ -47,7 +47,7 @@ print_help () {
   echo "                           we are already running as a non-root user; the -f"
   echo "                           and --gname options override this environment"
   echo "                           variable."
-  echo "  RUN_NON_ROOT_USER_ID     The user ID to use when executing the command; the"
+  echo "  RUN_NON_ROOT_UID         The user ID to use when executing the command; the"
   echo "                           default is the first unused user ID strictly less"
   echo "                           than 1000; this variable is ignored if we are"
   echo "                           already running as a non-root user; the -u and --uid"
@@ -69,9 +69,9 @@ print_help () {
   echo
   echo "  # Run id as a non-root user using environment variables"
   echo "  # and the given user specification."
-  echo "  export RUN_NON_ROOT_GROUP_ID=1000"
+  echo "  export RUN_NON_ROOT_GID=1000"
   echo "  export RUN_NON_ROOT_GROUP_NAME=ec2-user"
-  echo "  export RUN_NON_ROOT_USER_ID=1000"
+  echo "  export RUN_NON_ROOT_UID=1000"
   echo "  export RUN_NON_ROOT_USERNAME=ec2-user"
   echo "  run-non-root -- id"
 }
@@ -254,77 +254,77 @@ check_for_su_exec () {
 determine_group_id () {
   local RETURN_VALUE=$1
   local DEBUG=$2
-  # The eval at the end does not work if we use GROUP_ID.
-  local LOCAL_GROUP_ID=$3
+  # The eval at the end does not work if we use GID.
+  local local_gid=$3
   local GROUP_NAME=$4
   local QUIET=$5
-  local USER_ID=$6
+  local uid=$6
   local USERNAME=$7
 
-  exists_group_id "${LOCAL_GROUP_ID}"
-  local GROUP_ID_EXISTS=$?
+  exists_group_id "${local_gid}"
+  local gid_exists=$?
 
   getent group "${GROUP_NAME}" > /dev/null 2>&1
   local GROUP_NAME_EXISTS=$?
 
-  exists_user_id "${USER_ID}"
-  local USER_ID_EXISTS=$?
+  exists_user_id "${uid}"
+  local uid_exists=$?
 
   getent passwd "${USERNAME}" > /dev/null 2>&1
   local USERNAME_EXISTS=$?
 
-  if [ "${GROUP_ID_EXISTS}" -ne 0 ] && [ "${GROUP_NAME_EXISTS}" -ne 0 ]; then
-    if [ "${USER_ID_EXISTS}" -ne 0 ] && [ "${USERNAME_EXISTS}" -ne 0 ]; then
+  if [ "${gid_exists}" -ne 0 ] && [ "${GROUP_NAME_EXISTS}" -ne 0 ]; then
+    if [ "${uid_exists}" -ne 0 ] && [ "${USERNAME_EXISTS}" -ne 0 ]; then
       # Find a group ID that does not exist starting from 999.
-      if [ -z "${LOCAL_GROUP_ID}" ]; then
-        find_unused_group_id LOCAL_GROUP_ID
+      if [ -z "${local_gid}" ]; then
+        find_unused_group_id local_gid
       fi
       check_for_groupadd "${DEBUG}" "${QUIET}"
       if [ ! -z "${DEBUG}" ]; then
-        printf "\n$(output_cyan)Executing$(output_reset) groupadd --gid \"${LOCAL_GROUP_ID}\" \"${GROUP_NAME}\" ... "
+        printf "\n$(output_cyan)Executing$(output_reset) groupadd --gid \"${local_gid}\" \"${GROUP_NAME}\" ... "
       fi
       # "groupadd(8) - Linux man page"
       # https://linux.die.net/man/8/groupadd
-      groupadd --gid "${LOCAL_GROUP_ID}" "${GROUP_NAME}"
+      groupadd --gid "${local_gid}" "${GROUP_NAME}"
       if [ $? -ne 0 ]; then
-        exit_with_error 4 "We could not add the group ${GROUP_NAME} with ID ${LOCAL_GROUP_ID}."
+        exit_with_error 4 "We could not add the group ${GROUP_NAME} with ID ${local_gid}."
       fi
       if [ ! -z "${DEBUG}" ]; then
         printf "$(output_cyan)DONE$(output_reset)\n"
       fi
-    elif [ "${USER_ID_EXISTS}" -ne 0 ]; then
-      LOCAL_GROUP_ID=`id -g ${USERNAME}`
+    elif [ "${uid_exists}" -ne 0 ]; then
+      local_gid=`id -g ${USERNAME}`
     else
       # Using id with a UID does not work in Alpine Linux.
-      LOCAL_GROUP_ID=`getent passwd ${USER_ID} | awk -F ":" '{print $4}'`
+      local_gid=`getent passwd ${uid} | awk -F ":" '{print $4}'`
     fi
-  elif [ "${GROUP_ID_EXISTS}" -ne 0 ]; then
-    LOCAL_GROUP_ID=`getent group ${GROUP_NAME} | awk -F ":" '{print $3}'`
+  elif [ "${gid_exists}" -ne 0 ]; then
+    local_gid=`getent group ${GROUP_NAME} | awk -F ":" '{print $3}'`
   fi
 
-  eval $RETURN_VALUE="'${LOCAL_GROUP_ID}'"
+  eval $RETURN_VALUE="'${local_gid}'"
 }
 
 determine_username () {
   local RETURN_VALUE=$1
   local DEBUG=$2
-  local GROUP_ID=$3
+  local gid=$3
   local QUIET=$4
-  local USER_ID=$5
+  local uid=$5
   # The eval at the end (might) not work if we use USERNAME.
-  # See determine_group_id and its LOCAL_GROUP_ID.
+  # See determine_group_id and its local_gid.
   local LOCAL_USERNAME=$6
 
-  exists_user_id "${USER_ID}"
-  local USER_ID_EXISTS=$?
+  exists_user_id "${uid}"
+  local uid_exists=$?
 
   getent passwd "${LOCAL_USERNAME}" > /dev/null 2>&1
   local USERNAME_EXISTS=$?
 
-  if [ "${USER_ID_EXISTS}" -ne 0 ] && [ "${USERNAME_EXISTS}" -ne 0 ]; then
+  if [ "${uid_exists}" -ne 0 ] && [ "${USERNAME_EXISTS}" -ne 0 ]; then
     # Find a user ID that does not exist starting from 999.
-    if [ -z "${USER_ID}" ]; then
-      find_unused_user_id USER_ID
+    if [ -z "${uid}" ]; then
+      find_unused_user_id uid
     fi
     check_for_useradd "${DEBUG}" "${QUIET}"
     # In alpine:3.7, useradd set the shell to /bin/bash even though it doesn't exist.
@@ -332,52 +332,52 @@ determine_username () {
     if [ ! -z "${DEBUG}" ]; then
       printf "\n$(output_cyan)Executing$(output_reset) useradd \\ \n"
       printf "  --create-home \\ \n"
-      printf "  --gid \"${GROUP_ID}\" \\ \n"
+      printf "  --gid \"${gid}\" \\ \n"
       printf "  --no-log-init \\ \n"
       printf "  --shell /bin/sh \\ \n"
-      printf "  --uid \"${USER_ID}\" \\ \n"
+      printf "  --uid \"${uid}\" \\ \n"
       printf "  \"${LOCAL_USERNAME}\" ... "
     fi
     # "useradd(8) - Linux man page"
     # https://linux.die.net/man/8/useradd
     useradd \
       --create-home \
-      --gid "${GROUP_ID}" \
+      --gid "${gid}" \
       --no-log-init \
       --shell /bin/sh \
-      --uid "${USER_ID}" \
+      --uid "${uid}" \
       "${LOCAL_USERNAME}"
     if [ $? -ne 0 ]; then
-      exit_with_error 7 "We could not add the user ${LOCAL_USERNAME} with ID ${USER_ID}."
+      exit_with_error 7 "We could not add the user ${LOCAL_USERNAME} with ID ${uid}."
     fi
     if [ ! -z "${DEBUG}" ]; then
       printf "$(output_cyan)DONE$(output_reset)\n"
     fi
-  elif [ "${USER_ID_EXISTS}" -ne 0 ]; then
-    USER_ID=`id -u ${LOCAL_USERNAME}`
+  elif [ "${uid_exists}" -ne 0 ]; then
+    uid=`id -u ${LOCAL_USERNAME}`
   else
     # Using id with a UID does not work in Alpine Linux.
-    LOCAL_USERNAME=`getent passwd ${USER_ID} | awk -F ":" '{print $1}'`
+    LOCAL_USERNAME=`getent passwd ${uid} | awk -F ":" '{print $1}'`
   fi
 
   eval $RETURN_VALUE="'${LOCAL_USERNAME}'"
 }
 
 exists_group_id () {
-  local GROUP_ID=$1
-  if [ -z "${GROUP_ID}" ]; then
+  local gid=$1
+  if [ -z "${gid}" ]; then
     return 1
   else
-    getent group "${GROUP_ID}" > /dev/null 2>&1
+    getent group "${gid}" > /dev/null 2>&1
   fi
 }
 
 exists_user_id () {
-  local USER_ID=$1
-  if [ -z "${USER_ID}" ]; then
+  local uid=$1
+  if [ -z "${uid}" ]; then
     return 1
   else
-    getent passwd "${USER_ID}" > /dev/null 2>&1
+    getent passwd "${uid}" > /dev/null 2>&1
   fi
 }
 
@@ -391,35 +391,35 @@ exit_with_error () {
 find_unused_group_id () {
   local RETURN_VALUE=$1
   local ID=999
-  local UNUSED_GROUP_ID
-  while [ -z "${UNUSED_GROUP_ID}" ] && [ "$ID" -gt 0 ]; do
+  local unused_gid
+  while [ -z "${unused_gid}" ] && [ "$ID" -gt 0 ]; do
     getent group "${ID}" > /dev/null 2>&1
     if [ $? -ne 0 ]; then
-      UNUSED_GROUP_ID="${ID}"
+      unused_gid="${ID}"
     fi
     ID=$((ID-1))
   done
   if [ "$ID" -eq 0 ]; then
     exit_with_error 3 "We could not find an unused group ID strictly greater than 0 and strictly less than 1000."
   fi
-  eval $RETURN_VALUE="'${UNUSED_GROUP_ID}'"
+  eval $RETURN_VALUE="'${unused_gid}'"
 }
 
 find_unused_user_id () {
   local RETURN_VALUE=$1
   local ID=999
-  local UNUSED_USER_ID
-  while [ -z "${UNUSED_USER_ID}" ] && [ "$ID" -gt 0 ]; do
+  local unused_uid
+  while [ -z "${unused_uid}" ] && [ "$ID" -gt 0 ]; do
     getent passwd "${ID}" > /dev/null 2>&1
     if [ $? -ne 0 ]; then
-      UNUSED_USER_ID="${ID}"
+      unused_uid="${ID}"
     fi
     ID=$((ID-1))
   done
   if [ "$ID" -eq 0 ]; then
     exit_with_error 6 "We could not find an unused user ID strictly greater than 0 and strictly less than 1000."
   fi
-  eval $RETURN_VALUE="'${UNUSED_USER_ID}'"
+  eval $RETURN_VALUE="'${unused_uid}'"
 }
 
 local_tput () {
@@ -503,55 +503,55 @@ run_as_non_root_user () {
 
   local COMMAND=${1:-sh}
   local DEBUG=$2
-  local GROUP_ID=$3
+  local gid=$3
   local GROUP_NAME=${4:-nonroot}
   local QUIET=$5
-  local USER_ID=$6
+  local uid=$6
   local USERNAME=${7:-nonroot}
 
   # "Returning Values from Bash Functions"
   # https://www.linuxjournal.com/content/return-values-bash-functions
 
   determine_group_id \
-    GROUP_ID \
+    gid \
     "${DEBUG}" \
-    "${GROUP_ID}" \
+    "${gid}" \
     "${GROUP_NAME}" \
     "${QUIET}" \
-    "${USER_ID}" \
+    "${uid}" \
     "${USERNAME}"
   determine_username \
     USERNAME \
     "${DEBUG}" \
-    "${GROUP_ID}" \
+    "${gid}" \
     "${QUIET}" \
-    "${USER_ID}" \
+    "${uid}" \
     "${USERNAME}"
 
   check_for_su_exec "${DEBUG}" "${QUIET}"
   if [ ! -z "${DEBUG}" ] || [ -z ${QUIET} ]; then
-    printf "\n$(output_green)Running ( su-exec \"${USERNAME}:${GROUP_ID}\" $(output_bold)${COMMAND}$(output_reset)$(output_green) ) as $(id ${USERNAME}) ...\n\n$(output_reset)"
+    printf "\n$(output_green)Running ( su-exec \"${USERNAME}:${gid}\" $(output_bold)${COMMAND}$(output_reset)$(output_green) ) as $(id ${USERNAME}) ...\n\n$(output_reset)"
   fi
-  exec su-exec "${USERNAME}:${GROUP_ID}" ${COMMAND}
+  exec su-exec "${USERNAME}:${gid}" ${COMMAND}
 }
 
 run_non_root () {
   local COMMAND=$1
   local DEBUG=$2
-  local GROUP_ID=$3
+  local gid=$3
   local GROUP_NAME=$4
   local QUIET=$5
-  local USER_ID=$6
+  local uid=$6
   local USERNAME=$7
 
   if [ "$(whoami)" = "root" ]; then
     run_as_non_root_user \
       "${COMMAND}" \
       "${DEBUG}" \
-      "${GROUP_ID}" \
+      "${gid}" \
       "${GROUP_NAME}" \
       "${QUIET}" \
-      "${USER_ID}" \
+      "${uid}" \
       "${USERNAME}"
   else
     run_as_current_user "${COMMAND}" "${QUIET}"
@@ -621,11 +621,11 @@ eval set -- "${RUN_NON_ROOT_PARSED_OPTIONS}"
 
 RUN_NON_ROOT_COMMAND=${RUN_NON_ROOT_COMMAND}
 RUN_NON_ROOT_DEBUG=${RUN_NON_ROOT_DEBUG}
-RUN_NON_ROOT_GROUP_ID=${RUN_NON_ROOT_GROUP_ID}
+RUN_NON_ROOT_GID=${RUN_NON_ROOT_GID}
 RUN_NON_ROOT_GROUP_NAME=${RUN_NON_ROOT_GROUP_NAME}
 RUN_NON_ROOT_HELP=${RUN_NON_ROOT_HELP}
 RUN_NON_ROOT_QUIET=
-RUN_NON_ROOT_USER_ID=${RUN_NON_ROOT_USER_ID}
+RUN_NON_ROOT_UID=${RUN_NON_ROOT_UID}
 RUN_NON_ROOT_USERNAME=${RUN_NON_ROOT_USERNAME}
 
 while true; do
@@ -639,7 +639,7 @@ while true; do
       shift 2
       ;;
     -g|--gid)
-      RUN_NON_ROOT_GROUP_ID="$2"
+      RUN_NON_ROOT_GID="$2"
       shift 2
       ;;
     -h|--help)
@@ -655,7 +655,7 @@ while true; do
       shift 2
       ;;
     -u|--uid)
-      RUN_NON_ROOT_USER_ID="$2"
+      RUN_NON_ROOT_UID="$2"
       shift 2
       ;;
     --)
@@ -675,11 +675,11 @@ if [ ! -z "${RUN_NON_ROOT_DEBUG}" ]; then
   echo "$(output_cyan)Command Options:$(output_reset)"
   echo "  $(output_cyan)RUN_NON_ROOT_COMMAND=$(output_reset)${RUN_NON_ROOT_COMMAND}"
   echo "  $(output_cyan)RUN_NON_ROOT_DEBUG=$(output_reset)${RUN_NON_ROOT_DEBUG}"
-  echo "  $(output_cyan)RUN_NON_ROOT_GROUP_ID=$(output_reset)${RUN_NON_ROOT_GROUP_ID}"
+  echo "  $(output_cyan)RUN_NON_ROOT_GID=$(output_reset)${RUN_NON_ROOT_GID}"
   echo "  $(output_cyan)RUN_NON_ROOT_GROUP_NAME=$(output_reset)${RUN_NON_ROOT_GROUP_NAME}"
   echo "  $(output_cyan)RUN_NON_ROOT_HELP=$(output_reset)${RUN_NON_ROOT_HELP}"
   echo "  $(output_cyan)RUN_NON_ROOT_QUIET=$(output_reset)${RUN_NON_ROOT_QUIET}"
-  echo "  $(output_cyan)RUN_NON_ROOT_USER_ID=$(output_reset)${RUN_NON_ROOT_USER_ID}"
+  echo "  $(output_cyan)RUN_NON_ROOT_UID=$(output_reset)${RUN_NON_ROOT_UID}"
   echo "  $(output_cyan)RUN_NON_ROOT_USERNAME=$(output_reset)${RUN_NON_ROOT_USERNAME}"
 fi
 
@@ -691,8 +691,8 @@ fi
 run_non_root \
   "${RUN_NON_ROOT_COMMAND}" \
   "${RUN_NON_ROOT_DEBUG}" \
-  "${RUN_NON_ROOT_GROUP_ID}" \
+  "${RUN_NON_ROOT_GID}" \
   "${RUN_NON_ROOT_GROUP_NAME}" \
   "${RUN_NON_ROOT_QUIET}" \
-  "${RUN_NON_ROOT_USER_ID}" \
+  "${RUN_NON_ROOT_UID}" \
   "${RUN_NON_ROOT_USERNAME}"

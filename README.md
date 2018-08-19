@@ -20,11 +20,11 @@ Options:
                            are already running as a non-root user; when
                            specified, this option overrides the
                            RUN_NON_ROOT_GROUP_NAME environment variable.
-  -g, --gid GROUP_ID       The group ID to use when executing the command;
+  -g, --gid GID            The group ID to use when executing the command;
                            the default is the first unused group ID strictly
                            less than 1000; this option is ignored if we are
                            already running as a non-root user; when specified,
-                           this option overrides the RUN_NON_ROOT_GROUP_ID
+                           this option overrides the RUN_NON_ROOT_GID
                            environment variable.
   -h, --help               Output this help message and exit.
   -q, --quiet              Do not output "Running ( COMMAND ) as USER_INFO ..."
@@ -35,17 +35,17 @@ Options:
                            already running as a non-root user; when specified,
                            this option overrides the RUN_NON_ROOT_USERNAME
                            environment variable.
-  -u, --uid USER_ID        The user ID to use when executing the command;
+  -u, --uid UID            The user ID to use when executing the command;
                            the default is the first unused user ID strictly
                            less than 1000; this option is ignored if we are
                            already running as a non-root user; when specified,
-                           this option overrides the RUN_NON_ROOT_USER_ID
+                           this option overrides the RUN_NON_ROOT_UID
                            environment variable.
 
 Environment Variables:
   RUN_NON_ROOT_COMMAND     The command to execute if a command is not given;
                            the default is sh.
-  RUN_NON_ROOT_GROUP_ID    The group ID to use when executing the command; the
+  RUN_NON_ROOT_GID         The group ID to use when executing the command; the
                            default is the first unused group ID strictly less
                            than 1000; this variable is ignored if we are
                            already running as a non-root user; the -g and --gid
@@ -55,7 +55,7 @@ Environment Variables:
                            we are already running as a non-root user; the -f
                            and --gname options override this environment
                            variable.
-  RUN_NON_ROOT_USER_ID     The user ID to use when executing the command; the
+  RUN_NON_ROOT_UID         The user ID to use when executing the command; the
                            default is the first unused user ID strictly less
                            than 1000; this variable is ignored if we are
                            already running as a non-root user; the -u and --uid
@@ -77,9 +77,9 @@ Examples:
 
   # Run id as a non-root user using environment variables
   # and the given user specification.
-  export RUN_NON_ROOT_GROUP_ID=1000
+  export RUN_NON_ROOT_GID=1000
   export RUN_NON_ROOT_GROUP_NAME=ec2-user
-  export RUN_NON_ROOT_USER_ID=1000
+  export RUN_NON_ROOT_UID=1000
   export RUN_NON_ROOT_USERNAME=ec2-user
   run-non-root -- id
 ```

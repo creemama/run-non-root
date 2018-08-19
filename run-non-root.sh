@@ -7,7 +7,7 @@ print_help () {
   echo "Options:"
   echo "  -d, --debug              Output debug information; using --quiet does not"
   echo "                           silence debug output."
-  echo "  -f, --gname GROUP_NAME   The group name to use when executing the command;"
+  echo "  -f, --group GROUP_NAME   The group name to use when executing the command;"
   echo "                           the default is nonroot; this option is ignored if we"
   echo "                           are already running as a non-root user; when"
   echo "                           specified, this option overrides the"
@@ -22,7 +22,7 @@ print_help () {
   echo "  -q, --quiet              Do not output \"Running ( COMMAND ) as USER_INFO ...\""
   echo "                           or warnings; this option does not silence --debug"
   echo "                           output."
-  echo "  -t, --uname USERNAME     The username to use when executing the command; the"
+  echo "  -t, --user USERNAME      The username to use when executing the command; the"
   echo "                           default is nonroot; this option is ignored if we are"
   echo "                           already running as a non-root user; when specified,"
   echo "                           this option overrides the RUN_NON_ROOT_USERNAME"
@@ -42,20 +42,20 @@ print_help () {
   echo "                           than 1000; this variable is ignored if we are"
   echo "                           already running as a non-root user; the -g and --gid"
   echo "                           options override this environment variable."
-  echo "  RUN_NON_ROOT_GROUP_NAME  The group name to use when executing the command;"
+  echo "  RUN_NON_ROOT_GROUP       The group name to use when executing the command;"
   echo "                           the default is nonroot; this variable is ignored if"
   echo "                           we are already running as a non-root user; the -f"
-  echo "                           and --gname options override this environment"
+  echo "                           and --group options override this environment"
   echo "                           variable."
   echo "  RUN_NON_ROOT_UID         The user ID to use when executing the command; the"
   echo "                           default is the first unused user ID strictly less"
   echo "                           than 1000; this variable is ignored if we are"
   echo "                           already running as a non-root user; the -u and --uid"
   echo "                           options override this environment variable."
-  echo "  RUN_NON_ROOT_USERNAME    The username to use when executing the command; the"
+  echo "  RUN_NON_ROOT_USER        The username to use when executing the command; the"
   echo "                           default is nonroot; this option is ignored if we are"
   echo "                           already running as a non-root user; the -t and"
-  echo "                           --uname options override this environment variable."
+  echo "                           --user options override this environment variable."
   echo
   echo "Examples:"
   echo "  # Run sh as a non-root user."
@@ -613,7 +613,7 @@ yum_install_su_exec () {
 # https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash
 
 check_for_getopt
-RUN_NON_ROOT_PARSED_OPTIONS=`getopt --options=df:g:hqt:u: --longoptions=debug,gid:,gname:,help,quiet,uid:,uname: --name "$0" -- "$@"`
+RUN_NON_ROOT_PARSED_OPTIONS=`getopt --options=df:g:hqt:u: --longoptions=debug,gid:,group:,help,quiet,uid:,user: --name "$0" -- "$@"`
 if [ $? -ne 0 ]; then
   exit 1
 fi
@@ -634,7 +634,7 @@ while true; do
       RUN_NON_ROOT_DEBUG=y
       shift
       ;;
-    -f|--gname)
+    -f|--group)
       RUN_NON_ROOT_GROUP_NAME="$2"
       shift 2
       ;;
@@ -650,7 +650,7 @@ while true; do
       RUN_NON_ROOT_QUIET=y
       shift
       ;;
-    -t|--uname)
+    -t|--user)
       RUN_NON_ROOT_USERNAME="$2"
       shift 2
       ;;

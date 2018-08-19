@@ -30,11 +30,11 @@ Options:
   -q, --quiet              Do not output "Running ( COMMAND ) as USER_INFO ..."
                            or warnings; this option does not silence --debug
                            output.
-  -t, --uname USER_NAME    The user name to use when executing the command;
-                           the default is nonrootuser; this option is ignored
-                           if we are already running as a non-root user; when
+  -t, --uname USERNAME     The username to use when executing the command; the
+                           default is nonrootuser; this option is ignored if we
+                           are already running as a non-root user; when
                            specified, this option overrides the
-                           RUN_NON_ROOT_USER_NAME environment variable.
+                           RUN_NON_ROOT_USERNAME environment variable.
   -u, --uid USER_ID        The user ID to use when executing the command;
                            the default is the first unused user ID strictly
                            less than 1000; this option is ignored if we are
@@ -60,7 +60,7 @@ Environment Variables:
                            than 1000; this variable is ignored if we are
                            already running as a non-root user; the -u and --uid
                            options override this environment variable.
-  RUN_NON_ROOT_USER_NAME   The user name to use when executing the command; the
+  RUN_NON_ROOT_USERNAME    The username to use when executing the command; the
                            default is nonrootuser; this option is ignored if we
                            are already running as a non-root user; the -t and
                            --uname options override this environment variable.
@@ -80,7 +80,7 @@ Examples:
   export RUN_NON_ROOT_GROUP_ID=1000
   export RUN_NON_ROOT_GROUP_NAME=ec2-user
   export RUN_NON_ROOT_USER_ID=1000
-  export RUN_NON_ROOT_USER_NAME=ec2-user
+  export RUN_NON_ROOT_USERNAME=ec2-user
   run-non-root -- id
 ```
 

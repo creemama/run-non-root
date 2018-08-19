@@ -16,31 +16,30 @@ Options:
   -d, --debug             Output debug information; using --quiet does not
                           silence debug output.
   -f, --group GROUP_NAME  The group name to use when executing the command; the
-                          default is nonroot; this option is ignored if we are
-                          already running as a non-root user; when specified,
-                          this option overrides the RUN_NON_ROOT_GROUP_NAME
+                          default group name is USERNAME or nonroot; this
+                          option is ignored if we are already running as a
+                          non-root user or if the GID already exists; this
+                          option overrides the RUN_NON_ROOT_GROUP_NAME
                           environment variable.
   -g, --gid GID           The group ID to use when executing the command; the
-                          default is the first unused group ID strictly less
-                          than 1000; this option is ignored if we are already
-                          running as a non-root user; when specified, this
-                          option overrides the RUN_NON_ROOT_GID environment
-                          variable.
+                          default GID is UID or a new ID determined by
+                          groupadd; this option is ignored if we are already
+                          running as a non-root user; this option overrides the
+                          RUN_NON_ROOT_GID environment variable.
   -h, --help              Output this help message and exit.
   -q, --quiet             Do not output "Running ( COMMAND ) as USER_INFO ..."
                           or warnings; this option does not silence --debug
                           output.
   -t, --user USERNAME     The username to use when executing the command; the
                           default is nonroot; this option is ignored if we are
-                          already running as a non-root user; when specified,
-                          this option overrides the RUN_NON_ROOT_USERNAME
-                          environment variable.
+                          already running as a non-root user or if the UID
+                          already exists; this option overrides the
+                          RUN_NON_ROOT_USERNAME environment variable.
   -u, --uid UID           The user ID to use when executing the command; the
-                          default is the first unused user ID strictly less
-                          than 1000; this option is ignored if we are already
-                          running as a non-root user; when specified, this
-                          option overrides the RUN_NON_ROOT_UID environment
-                          variable.
+                          default UID is GID or a new ID determined by
+                          useraddd; this option is ignored if we are already
+                          running as a non-root user; this option overrides the
+                          RUN_NON_ROOT_UID environment variable.
 
 Environment Variables:
   RUN_NON_ROOT_COMMAND    The command to execute if a command is not given; the

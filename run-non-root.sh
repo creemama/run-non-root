@@ -283,6 +283,8 @@ determine_group_id () {
       if [ ! -z "${DEBUG}" ]; then
         printf "\n$(output_cyan)Executing$(output_reset) groupadd --gid \"${LOCAL_GROUP_ID}\" \"${GROUP_NAME}\" ... "
       fi
+      # "groupadd(8) - Linux man page"
+      # https://linux.die.net/man/8/groupadd
       groupadd --gid "${LOCAL_GROUP_ID}" "${GROUP_NAME}"
       if [ $? -ne 0 ]; then
         exit_with_error 4 "We could not add the group ${GROUP_NAME} with ID ${LOCAL_GROUP_ID}."
@@ -336,6 +338,8 @@ determine_username () {
       printf "  --uid \"${USER_ID}\" \\ \n"
       printf "  \"${LOCAL_USERNAME}\" ... "
     fi
+    # "useradd(8) - Linux man page"
+    # https://linux.die.net/man/8/useradd
     useradd \
       --create-home \
       --gid "${GROUP_ID}" \

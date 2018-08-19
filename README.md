@@ -50,11 +50,11 @@ Environment Variables:
                            than 1000; this variable is ignored if we are
                            already running as a non-root user; the -g and --gid
                            options override this environment variable.
-  RUN_NON_ROOT_GROUP_NAME  The user name to use when executing the command; the
-                           default is nonrootgroup; this variable is ignored if
-                           we are already running as a non-root user; the -f
-                           and --gname options override this environment
-                           variable.
+  RUN_NON_ROOT_GROUP_NAME  The group name to use when executing the command;
+                           the default is nonrootgroup; this variable is
+                           ignored if we are already running as a non-root
+                           user; the -f and --gname options override this
+                           environment variable.
   RUN_NON_ROOT_USER_ID     The user ID to use when executing the command; the
                            default is the first unused user ID strictly less
                            than 1000; this variable is ignored if we are

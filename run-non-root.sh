@@ -405,7 +405,11 @@ main () {
   # https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash
 
   check_for_getopt
-  local parsed_options=`getopt --options=df:g:hqt:u: --longoptions=debug,gid:,group:,help,quiet,uid:,user: --name "$0" -- "$@"`
+  local parsed_options=`getopt \
+    --options=df:g:hqt:u: \
+    --longoptions=debug,gid:,group:,help,quiet,uid:,user: \
+    --name "$0" \
+    -- "$@"`
   if [ $? -ne 0 ]; then
     exit 1
   fi
@@ -679,7 +683,9 @@ update_group_spec () {
   elif [ "${group_name_exists}" -eq 0 ]; then
     if [ -z "${local_gid}" ]; then
       local gid_of_group_name=`getent group ${local_group_name} | awk -F ":" '{print $3}'`
-      if [ -z "${quiet}" ] && [ ! -z "${local_gid}" ] && [ "${local_gid}" != "${gid_of_group_name}" ]; then
+      if [ -z "${quiet}" ] \
+      && [ ! -z "${local_gid}" ] \
+      && [ "${local_gid}" != "${gid_of_group_name}" ]; then
         print_warning "We have ignored the GID you specified, ${local_gid}. The group name you specified, ${local_group_name}, exists with the GID ${gid_of_group_name}."
       fi
       local_gid="${gid_of_group_name}"
@@ -688,7 +694,9 @@ update_group_spec () {
       local_create_group=0
     fi
   else
-    if [ -z "${create_user}" ] && [ -z "${local_gid}" ] && [ -z "${local_group_name}" ]; then
+    if [ -z "${create_user}" ] \
+    && [ -z "${local_gid}" ] \
+    && [ -z "${local_group_name}" ]; then
       local_gid=`id -g "${username}"`
       local_group_name=`id -gn "${username}"`
     else
@@ -716,14 +724,18 @@ update_user_spec () {
   if [ "${uid_exists}" -eq 0 ]; then
     # Using id with a UID does not work in Alpine Linux.
     local username_of_uid=`getent passwd ${local_uid} | awk -F ":" '{print $1}'`
-    if [ -z "${quiet}" ] && [ ! -z "${local_username}" ] && [ "${local_username}" != "${username_of_uid}" ]; then
+    if [ -z "${quiet}" ] \
+    && [ ! -z "${local_username}" ] \
+    && [ "${local_username}" != "${username_of_uid}" ]; then
       print_warning "We have ignored the username you specified, ${local_username}. The UID you specified, ${local_uid}, exists with the username ${username_of_uid}."
     fi
     local_username="${username_of_uid}"
   elif [ "${username_exists}" -eq 0 ]; then
     if [ -z "${local_uid}" ]; then
       local uid_of_username=`id -u ${local_username}`
-      if [ -z "${quiet}" ] && [ ! -z "${local_uid}" ] && [ "${local_uid}" != "${uid_of_username}" ]; then
+      if [ -z "${quiet}" ] \
+      && [ ! -z "${local_uid}" ] \
+      && [ "${local_uid}" != "${uid_of_username}" ]; then
         print_warning "We have ignored the UID you specified, ${local_uid}. The username you specified, ${local_username}, exists with the UID ${uid_of_username}."
       fi
       local_uid="${uid_of_username}"

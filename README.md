@@ -45,25 +45,14 @@ Options:
 Environment Variables:
   RUN_NON_ROOT_COMMAND    The command to execute if a command is not given; the
                           default is sh.
-  RUN_NON_ROOT_GID        The group ID to use when executing the command; the
-                          default is the first unused group ID strictly less
-                          than 1000; this variable is ignored if we are already
-                          running as a non-root user; the -g and --gid options
-                          override this environment variable.
-  RUN_NON_ROOT_GROUP      The group name to use when executing the command; the
-                          default is nonroot; this variable is ignored if we
-                          are already running as a non-root user; the -f and
-                          --group options override this environment variable.
-  RUN_NON_ROOT_UID        The user ID to use when executing the command; the
-                          default is the first unused user ID strictly less
-                          than 1000; this variable is ignored if we are already
-                          running as a non-root user; the -u and --uid options
-                          override this environment variable.
-  RUN_NON_ROOT_USER       The username to use when executing the command; the
-                          default is nonroot; this option is ignored if we are
-                          already running as a non-root user; the -t and --user
-                          options override this environment variable.
-
+  RUN_NON_ROOT_GID        The group ID to use when executing the command; see
+                          the --gid option for more info.
+  RUN_NON_ROOT_GROUP      The group name to use when executing the command; see
+                          the --group option for more info.
+  RUN_NON_ROOT_UID        The user ID to use when executing the command; see
+                          the --uid option for more info.
+  RUN_NON_ROOT_USER       The username to use when executing the command; see
+                          the --user option for more info.
 Examples:
   # Run sh as a non-root user.
   run-non-root

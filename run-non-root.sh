@@ -340,21 +340,21 @@ determine_username () {
   eval $RETURN_VALUE="'${LOCAL_USERNAME}'"
 }
 
-exists_group_id () {
-  local gid=$1
-  if [ -z "${gid}" ]; then
+does_group_exist () {
+  local gid_or_group_name=$1
+  if [ -z "${gid_or_group_name}" ]; then
     return 1
   else
-    getent group "${gid}" > /dev/null 2>&1
+    getent group "${gid_or_group_name}" > /dev/null 2>&1
   fi
 }
 
-exists_user_id () {
-  local uid=$1
-  if [ -z "${uid}" ]; then
+does_user_exist () {
+  local uid_or_username=$1
+  if [ -z "${uid_or_username}" ]; then
     return 1
   else
-    getent passwd "${uid}" > /dev/null 2>&1
+    getent passwd "${uid_or_username}" > /dev/null 2>&1
   fi
 }
 
@@ -486,16 +486,16 @@ run_as_non_root_user () {
   local uid=$6
   local USERNAME=${7:-nonroot}
 
-  exists_group_id "${gid}"
+  does_group_exist "${gid}"
   local gid_exists=$?
 
-  getent group "${GROUP_NAME}" > /dev/null 2>&1
+  does_group_exist "${GROUP_NAME}"
   local GROUP_NAME_EXISTS=$?
 
-  exists_user_id "${uid}"
+  does_user_exist "${uid}"
   local uid_exists=$?
 
-  getent passwd "${USERNAME}" > /dev/null 2>&1
+  does_user_exist "${USERNAME}"
   local USERNAME_EXISTS=$?
 
   # "Returning Values from Bash Functions"

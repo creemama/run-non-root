@@ -65,20 +65,20 @@ print_help () {
 }
 
 add_group() {
-  local debug=$1
-  local local_gid=$2
-  local local_group_name=$3
-  local quiet=$4
-  local return_gid=$5
-  local return_group_name=$6
-  local uid=$7
-  local username=$8
+  local debug="$1"
+  local local_gid="$2"
+  local local_group_name="$3"
+  local quiet="$4"
+  local return_gid="$5"
+  local return_group_name="$6"
+  local uid="$7"
+  local username="$8"
 
   if [ -z "${local_group_name}" ]; then
     does_group_exist "${username}"
-    local group_name_as_username_exists=$?
+    local group_name_as_username_exists="$?"
     if [ "${group_name_as_username_exists}" -eq 0 ]; then
-      local_group_name=nonroot
+      local_group_name="nonroot"
     else
       local_group_name="${username}"
     fi
@@ -86,7 +86,7 @@ add_group() {
 
   if [ -z "${local_gid}" ] && [ ! -z "${uid}" ]; then
     does_group_exist "${uid}"
-    local gid_as_uid=$?
+    local gid_as_uid="$?"
     if [ "${gid_as_uid}" -ne 0 ]; then
       local_gid="${uid}"
     fi
@@ -109,8 +109,9 @@ add_group() {
   fi
   # "groupadd(8) - Linux man page"
   # https://linux.die.net/man/8/groupadd
+  # gid_option is unquoted.
   groupadd ${gid_option} "${local_group_name}"
-  if [ $? -ne 0 ]; then
+  if [ "$?" -ne 0 ]; then
     local gid_part=
     if [ ! -z "${local_gid}" ]; then
       gid_part=" with ID ${local_gid}"
@@ -122,7 +123,7 @@ add_group() {
   fi
 
   if [ -z "${local_gid}" ]; then
-    local_gid=`getent group ${local_group_name} | awk -F ":" '{print $3}'`
+    local_gid="`getent group ${local_group_name} | awk -F ":" '{print $3}'`"
   fi
 
   eval $return_gid="'${local_gid}'"
@@ -130,15 +131,15 @@ add_group() {
 }
 
 add_user() {
-  local debug=$1
-  local gid=$2
-  local quiet=$3
-  local uid=$4
-  local username=$5
+  local debug="$1"
+  local gid="$2"
+  local quiet="$3"
+  local uid="$4"
+  local username="$5"
 
   if [ -z "${uid}" ]; then
     does_user_exist "${gid}"
-    local uid_as_gid_exists=$?
+    local uid_as_gid_exists="$?"
     if [ "${uid_as_gid_exists}" -ne 0 ]; then
       uid="${gid}"
     fi
@@ -171,6 +172,7 @@ add_user() {
   fi
   # "useradd(8) - Linux man page"
   # https://linux.die.net/man/8/useradd
+  # uid_option is unquoted.
   useradd \
     --create-home \
     --gid "${gid}" \
@@ -178,7 +180,7 @@ add_user() {
     --shell /bin/sh \
     ${uid_option} \
     "${username}"
-  if [ $? -ne 0 ]; then
+  if [ "$?" -ne 0 ]; then
     exit_with_error 7 "We could not add the user ${username} with ID ${uid}."
   fi
   if [ ! -z "${debug}" ]; then
@@ -187,8 +189,8 @@ add_user() {
 }
 
 apk_add_shadow () {
-  local debug=$1
-  local quiet=$2
+  local debug="$1"
+  local quiet="$2"
   if [ -z "${quiet}" ]; then
     print_warning "To speed up this command, call \"apk update && apk add shadow\" before executing this command."
   fi
@@ -206,8 +208,8 @@ apk_add_shadow () {
 }
 
 apk_add_su_exec () {
-  local debug=$1
-  local quiet=$2
+  local debug="$1"
+  local quiet="$2"
   if [ -z "${quiet}" ]; then
     print_warning "To speed up this command, call \"apk update && apk add su-exec\" before executing this command."
   fi
@@ -225,8 +227,8 @@ apk_add_su_exec () {
 }
 
 apt_get_install_su_exec () {
-  local debug=$1
-  local quiet=$2
+  local debug="$1"
+  local quiet="$2"
 
   if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
     printf "\n$(output_cyan)Executing$(output_reset) apt-get update ...\n"
@@ -289,38 +291,38 @@ apt_get_install_su_exec () {
 
 check_for_getopt () {
   command -v getopt > /dev/null
-  if [ $? -ne 0 ]; then
+  if [ "$?" -ne 0 ]; then
     command -v yum > /dev/null
-    if [ $? -eq 0 ]; then
+    if [ "$?" -eq 0 ]; then
       yum install -y util-linux-ng > /dev/null 2>&1
     fi
   fi
 }
 
 check_for_groupadd () {
-  local debug=$1
-  local quiet=$2
+  local debug="$1"
+  local quiet="$2"
   command -v groupadd > /dev/null
-  if [ $? -ne 0 ]; then
+  if [ "$?" -ne 0 ]; then
     command -v apk > /dev/null
-    if [ $? -eq 0 ]; then
+    if [ "$?" -eq 0 ]; then
       apk_add_shadow "${debug}" "${quiet}"
     fi
   fi
 }
 
 check_for_useradd () {
-  local debug=$1
-  local quiet=$2
+  local debug="$1"
+  local quiet="$2"
   command -v useradd > /dev/null
-  if [ $? -ne 0 ]; then
+  if [ "$?" -ne 0 ]; then
     command -v apk > /dev/null
-    if [ $? -eq 0 ]; then
+    if [ "$?" -eq 0 ]; then
       apk_add_shadow "${debug}" "${quiet}"
     fi
   fi
   command -v apk > /dev/null
-  if [ $? -eq 0 ]; then
+  if [ "$?" -eq 0 ]; then
     # In alpine:3.7, unless we execute the following command, we get the
     # following error after calling useradd:
     # Creating mailbox file: No such file or directory
@@ -335,34 +337,34 @@ check_for_useradd () {
 }
 
 check_for_su_exec () {
-  local debug=$1
-  local quiet=$2
+  local debug="$1"
+  local quiet="$2"
   command -v su-exec > /dev/null
-  if [ $? -ne 0 ]; then
+  if [ "$?" -ne 0 ]; then
 
     # "Package Management Basics: apt, yum, dnf, pkg"
     # https://www.digitalocean.com/community/tutorials/package-management-basics-apt-yum-dnf-pkg.
 
     command -v apk > /dev/null
-    if [ $? -eq 0 ]; then
+    if [ "$?" -eq 0 ]; then
       apk_add_su_exec "${debug}" "${quiet}"
-      return $?
+      return "$?"
     fi
     command -v apt-get > /dev/null
-    if [ $? -eq 0 ]; then
+    if [ "$?" -eq 0 ]; then
       apt_get_install_su_exec "${debug}" "${quiet}"
-      return $?
+      return "$?"
     fi
     command -v yum > /dev/null
-    if [ $? -eq 0 ]; then
+    if [ "$?" -eq 0 ]; then
       yum_install_su_exec "${debug}" "${quiet}"
-      return $?
+      return "$?"
     fi
   fi
 }
 
 does_group_exist () {
-  local gid_or_group_name=$1
+  local gid_or_group_name="$1"
   if [ -z "${gid_or_group_name}" ]; then
     return 1
   else
@@ -371,7 +373,7 @@ does_group_exist () {
 }
 
 does_user_exist () {
-  local uid_or_username=$1
+  local uid_or_username="$1"
   if [ -z "${uid_or_username}" ]; then
     return 1
   else
@@ -380,21 +382,22 @@ does_user_exist () {
 }
 
 exit_with_error () {
-  local exit_code=$1
-  local message=$2
+  local exit_code="$1"
+  local message="$2"
   (>&2 echo "$(output_red)$(output_bold)ERROR (${exit_code}):$(output_reset)$(output_red) ${message}$(output_reset)")
-  exit ${exit_code}
+  exit "${exit_code}"
 }
 
 local_tput () {
   # "No value for $TERM and no -T specified"
   # https://askubuntu.com/questions/591937/no-value-for-term-and-no-t-specified
   tty -s > /dev/null 2>&1
-  if [ ! $? -eq 0 ]; then
+  if [ ! "$?" -eq 0 ]; then
     return 0
   fi
   command -v tput > /dev/null 2>&1
-  if [ $? -eq 0 ]; then
+  if [ "$?" -eq 0 ]; then
+    # $@ is unquoted.
     tput $@
   fi
 }
@@ -405,29 +408,29 @@ main () {
   # https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash
 
   check_for_getopt
-  local parsed_options=`getopt \
+  local parsed_options="`getopt \
     --options=df:g:hqt:u: \
     --longoptions=debug,gid:,group:,help,quiet,uid:,user: \
     --name "$0" \
-    -- "$@"`
-  if [ $? -ne 0 ]; then
+    -- "$@"`"
+  if [ "$?" -ne 0 ]; then
     exit 1
   fi
   eval set -- "${parsed_options}"
 
-  local command=${RUN_NON_ROOT_COMMAND}
+  local command="${RUN_NON_ROOT_COMMAND}"
   local debug=
-  local gid=${RUN_NON_ROOT_GID}
-  local group_name=${RUN_NON_ROOT_GROUP_NAME}
+  local gid="${RUN_NON_ROOT_GID}"
+  local group_name="${RUN_NON_ROOT_GROUP_NAME}"
   local help=
   local quiet=
-  local uid=${RUN_NON_ROOT_UID}
-  local username=${RUN_NON_ROOT_USERNAME}
+  local uid="${RUN_NON_ROOT_UID}"
+  local username="${RUN_NON_ROOT_USERNAME}"
 
   while true; do
     case "$1" in
       -d|--debug)
-        debug=y
+        debug="y"
         shift
         ;;
       -f|--group)
@@ -439,11 +442,11 @@ main () {
         shift 2
         ;;
       -h|--help)
-        help=y
+        help="y"
         shift
         ;;
       -q|--quiet)
-        quiet=y
+        quiet="y"
         shift
         ;;
       -t|--user)
@@ -479,7 +482,7 @@ main () {
     echo "  $(output_cyan)username=$(output_reset)${username}"
   fi
 
-  if [ ! -z ${help} ]; then
+  if [ ! -z "${help}" ]; then
     print_help
     exit 0
   fi
@@ -519,10 +522,10 @@ output_yellow () {
 }
 
 print_exit_code () {
-  local debug=$1
-  local exit_code=$2
-  local quiet=$3
-  if [ ! -z "${debug}" ] || [ -z ${quiet} ]; then
+  local debug="$1"
+  local exit_code="$2"
+  local quiet="$3"
+  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
     if [ "${exit_code}" -eq 0 ]; then
       printf "\n$(output_green)Exit Code: ${exit_code}$(output_reset)\n\n"
     else
@@ -536,12 +539,13 @@ print_warning () {
 }
 
 run_as_current_user () {
-  local command=${1:-sh}
-  local quiet=$2
-  if [ ! -z "${debug}" ] || [ -z ${quiet} ]; then
+  local command="${1:-sh}"
+  local quiet="$2"
+  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
     print_warning "You are already running as a non-root user. We have ignored all group and user options."
     printf "\n$(output_green)Running ( $(output_bold)${command}$(output_reset)$(output_green) ) as $(id) ...\n\n$(output_reset)"
   fi
+  # command is unquoted.
   exec ${command}
 }
 
@@ -560,25 +564,25 @@ run_as_non_root_user () {
   # List all groups: getent group
   # List all users: getent passwd
 
-  local command=${1:-sh}
-  local debug=$2
-  local gid=$3
-  local group_name=$4
-  local quiet=$5
-  local uid=$6
-  local username=$7
+  local command="${1:-sh}"
+  local debug="$2"
+  local gid="$3"
+  local group_name="$4"
+  local quiet="$5"
+  local uid="$6"
+  local username="$7"
 
   does_group_exist "${gid}"
-  local gid_exists=$?
+  local gid_exists="$?"
 
   does_group_exist "${group_name}"
-  local group_name_exists=$?
+  local group_name_exists="$?"
 
   does_user_exist "${uid}"
-  local uid_exists=$?
+  local uid_exists="$?"
 
   does_user_exist "${username}"
-  local username_exists=$?
+  local username_exists="$?"
 
   local create_user=
   local create_group=
@@ -634,17 +638,18 @@ run_as_non_root_user () {
   if [ ! -z "${debug}" ] || [ -z ${quiet} ]; then
     printf "\n$(output_green)Running ( su-exec \"${username}:${gid}\" $(output_bold)${command}$(output_reset)$(output_green) ) as $(id ${username}) ...\n\n$(output_reset)"
   fi
+  # command is unquoted.
   exec su-exec "${username}:${gid}" ${command}
 }
 
 run_non_root () {
-  local command=$1
-  local debug=$2
-  local gid=$3
-  local group_name=$4
-  local quiet=$5
-  local uid=$6
-  local username=$7
+  local command="$1"
+  local debug="$2"
+  local gid="$3"
+  local group_name="$4"
+  local quiet="$5"
+  local uid="$6"
+  local username="$7"
 
   if [ "$(whoami)" = "root" ]; then
     run_as_non_root_user \
@@ -661,28 +666,28 @@ run_non_root () {
 }
 
 update_group_spec () {
-  local create_user=$1
-  local gid_exists=$2
-  local group_name_exists=$3
-  local local_gid=$4
-  local local_group_name=$5
-  local quiet=$6
-  local return_gid=$7
-  local return_group_name=$8
-  local return_create_group=$9
-  local username=${10}
+  local create_user="$1"
+  local gid_exists="$2"
+  local group_name_exists="$3"
+  local local_gid="$4"
+  local local_group_name="$5"
+  local quiet="$6"
+  local return_gid="$7"
+  local return_group_name="$8"
+  local return_create_group="$9"
+  local username="${10}"
 
   local local_create_group=
 
   if [ "${gid_exists}" -eq 0 ]; then
-    local group_name_of_gid=`getent group ${local_gid} | awk -F ":" '{print $1}'`
+    local group_name_of_gid="`getent group "${local_gid}" | awk -F ":" '{print $1}'`"
     if [ -z "${quiet}" ] && [ ! -z "${local_group_name}" ] && [ "${local_group_name}" != "${group_name_of_gid}" ]; then
       print_warning "We have ignored the group name you specified, ${local_group_name}. The GID you specified, ${local_gid}, exists with the group name ${group_name_of_gid}."
     fi
     local_group_name="${group_name_of_gid}"
   elif [ "${group_name_exists}" -eq 0 ]; then
     if [ -z "${local_gid}" ]; then
-      local gid_of_group_name=`getent group ${local_group_name} | awk -F ":" '{print $3}'`
+      local gid_of_group_name="`getent group "${local_group_name}" | awk -F ":" '{print $3}'`"
       if [ -z "${quiet}" ] \
       && [ ! -z "${local_gid}" ] \
       && [ "${local_gid}" != "${gid_of_group_name}" ]; then
@@ -697,8 +702,8 @@ update_group_spec () {
     if [ -z "${create_user}" ] \
     && [ -z "${local_gid}" ] \
     && [ -z "${local_group_name}" ]; then
-      local_gid=`id -g "${username}"`
-      local_group_name=`id -gn "${username}"`
+      local_gid="`id -g "${username}"`"
+      local_group_name="`id -gn "${username}"`"
     else
       local_create_group=0
     fi
@@ -710,20 +715,20 @@ update_group_spec () {
 }
 
 update_user_spec () {
-  local local_uid=$1
-  local local_username=$2
-  local quiet=$3
-  local return_uid=$4
-  local return_username=$5
-  local return_create_user=$6
-  local uid_exists=$7
-  local username_exists=$8
+  local local_uid="$1"
+  local local_username="$2"
+  local quiet="$3"
+  local return_uid="$4"
+  local return_username="$5"
+  local return_create_user="$6"
+  local uid_exists="$7"
+  local username_exists="$8"
 
   local local_create_user
 
   if [ "${uid_exists}" -eq 0 ]; then
     # Using id with a UID does not work in Alpine Linux.
-    local username_of_uid=`getent passwd ${local_uid} | awk -F ":" '{print $1}'`
+    local username_of_uid="`getent passwd "${local_uid}" | awk -F ":" '{print $1}'`"
     if [ -z "${quiet}" ] \
     && [ ! -z "${local_username}" ] \
     && [ "${local_username}" != "${username_of_uid}" ]; then
@@ -732,7 +737,7 @@ update_user_spec () {
     local_username="${username_of_uid}"
   elif [ "${username_exists}" -eq 0 ]; then
     if [ -z "${local_uid}" ]; then
-      local uid_of_username=`id -u ${local_username}`
+      local uid_of_username="`id -u "${local_username}"`"
       if [ -z "${quiet}" ] \
       && [ ! -z "${local_uid}" ] \
       && [ "${local_uid}" != "${uid_of_username}" ]; then
@@ -740,12 +745,12 @@ update_user_spec () {
       fi
       local_uid="${uid_of_username}"
     else
-      local_username=nonroot
+      local_username="nonroot"
       local_create_user=0
     fi
   else
     if [ -z "${local_username}" ]; then
-      local_username=nonroot
+      local_username="nonroot"
     fi
     local_create_user=0
   fi
@@ -756,8 +761,8 @@ update_user_spec () {
 }
 
 yum_install_su_exec () {
-  local debug=$1
-  local quiet=$2
+  local debug="$1"
+  local quiet="$2"
 
   if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
     printf "\n$(output_cyan)Executing$(output_reset) yum install -y gcc make unzip ...\n"
@@ -806,4 +811,4 @@ yum_install_su_exec () {
   fi
 }
 
-main $@
+main "$@"

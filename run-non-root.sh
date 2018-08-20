@@ -187,87 +187,87 @@ add_user() {
 }
 
 apk_add_shadow () {
-  local DEBUG=$1
-  local QUIET=$2
-  if [ -z "${QUIET}" ]; then
+  local debug=$1
+  local quiet=$2
+  if [ -z "${quiet}" ]; then
     print_warning "To speed up this command, call \"apk update && apk add shadow\" before executing this command."
   fi
-  if [ ! -z "${DEBUG}" ] || [ -z "${QUIET}" ]; then
+  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
     printf "\n$(output_cyan)Executing$(output_reset) apk update && apk add shadow ...\n"
   fi
-  if [ -z "${QUIET}" ]; then
+  if [ -z "${quiet}" ]; then
     apk update && apk add shadow
   else
     apk update > /dev/null && apk add shadow > /dev/null
   fi
-  if [ ! -z "${DEBUG}" ] || [ -z "${QUIET}" ]; then
+  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
     printf "$(output_cyan)DONE$(output_reset)\n"
   fi
 }
 
 apk_add_su_exec () {
-  local DEBUG=$1
-  local QUIET=$2
-  if [ -z "${QUIET}" ]; then
+  local debug=$1
+  local quiet=$2
+  if [ -z "${quiet}" ]; then
     print_warning "To speed up this command, call \"apk update && apk add su-exec\" before executing this command."
   fi
-  if [ ! -z "${DEBUG}" ] || [ -z "${QUIET}" ]; then
+  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
     printf "\n$(output_cyan)Executing$(output_reset) apk update && apk add su-exec ...\n"
   fi
-  if [ -z "${QUIET}" ]; then
+  if [ -z "${quiet}" ]; then
     apk update && apk add su-exec
   else
     apk update > /dev/null && apk add su-exec > /dev/null
   fi
-  if [ ! -z "${DEBUG}" ] || [ -z "${QUIET}" ]; then
+  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
     printf "$(output_cyan)DONE$(output_reset)\n"
   fi
 }
 
 apt_get_install_su_exec () {
-  local DEBUG=$1
-  local QUIET=$2
+  local debug=$1
+  local quiet=$2
 
-  if [ ! -z "${DEBUG}" ] || [ -z "${QUIET}" ]; then
+  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
     printf "\n$(output_cyan)Executing$(output_reset) apt-get update ...\n"
   fi
-  if [ -z "${QUIET}" ]; then
+  if [ -z "${quiet}" ]; then
     apt-get update
   else
     apt-get update > /dev/null 2>&1
   fi
-  if [ ! -z "${DEBUG}" ] || [ -z "${QUIET}" ]; then
+  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
     printf "$(output_cyan)DONE$(output_reset)\n"
   fi
 
-  if [ ! -z "${DEBUG}" ] || [ -z "${QUIET}" ]; then
+  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
     printf "\n$(output_cyan)Executing$(output_reset) apt-get install -y curl gcc make unzip ...\n"
   fi
-  if [ -z "${QUIET}" ]; then
+  if [ -z "${quiet}" ]; then
     apt-get install -y curl gcc make unzip
   else
     apt-get install -y curl gcc make unzip > /dev/null 2>&1
   fi
-  if [ ! -z "${DEBUG}" ] || [ -z "${QUIET}" ]; then
+  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
     printf "$(output_cyan)DONE$(output_reset)\n"
   fi
 
-  if [ ! -z "${DEBUG}" ] || [ -z "${QUIET}" ]; then
+  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
     printf "\n$(output_cyan)Executing$(output_reset) curl -L https://github.com/ncopa/su-exec/archive/dddd1567b7c76365e1e0aac561287975020a8fad.zip -o su-exec.zip ...\n"
   fi
-  if [ -z "${QUIET}" ]; then
+  if [ -z "${quiet}" ]; then
     curl -L https://github.com/ncopa/su-exec/archive/dddd1567b7c76365e1e0aac561287975020a8fad.zip -o su-exec.zip
   else
     curl --silent -L https://github.com/ncopa/su-exec/archive/dddd1567b7c76365e1e0aac561287975020a8fad.zip -o su-exec.zip
   fi
-  if [ ! -z "${DEBUG}" ] || [ -z "${QUIET}" ]; then
+  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
     printf "$(output_cyan)DONE$(output_reset)\n"
   fi
 
-  if [ ! -z "${DEBUG}" ] || [ -z "${QUIET}" ]; then
+  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
     printf "\n$(output_cyan)Installing$(output_reset) su-exec ...\n"
   fi
-  if [ -z "${QUIET}" ]; then
+  if [ -z "${quiet}" ]; then
     unzip su-exec.zip
     cd su-exec-dddd1567b7c76365e1e0aac561287975020a8fad
     make
@@ -282,7 +282,7 @@ apt_get_install_su_exec () {
     cd ..
     rm -rf su-exec-dddd1567b7c76365e1e0aac561287975020a8fad
   fi
-  if [ ! -z "${DEBUG}" ] || [ -z "${QUIET}" ]; then
+  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
     printf "$(output_cyan)DONE$(output_reset)\n"
   fi
 }
@@ -298,25 +298,25 @@ check_for_getopt () {
 }
 
 check_for_groupadd () {
-  local DEBUG=$1
-  local QUIET=$2
+  local debug=$1
+  local quiet=$2
   command -v groupadd > /dev/null
   if [ $? -ne 0 ]; then
     command -v apk > /dev/null
     if [ $? -eq 0 ]; then
-      apk_add_shadow "${DEBUG}" "${QUIET}"
+      apk_add_shadow "${debug}" "${quiet}"
     fi
   fi
 }
 
 check_for_useradd () {
-  local DEBUG=$1
-  local QUIET=$2
+  local debug=$1
+  local quiet=$2
   command -v useradd > /dev/null
   if [ $? -ne 0 ]; then
     command -v apk > /dev/null
     if [ $? -eq 0 ]; then
-      apk_add_shadow "${DEBUG}" "${QUIET}"
+      apk_add_shadow "${debug}" "${quiet}"
     fi
   fi
   command -v apk > /dev/null
@@ -324,19 +324,19 @@ check_for_useradd () {
     # In alpine:3.7, unless we execute the following command, we get the
     # following error after calling useradd:
     # Creating mailbox file: No such file or directory
-    if [ ! -z "${DEBUG}" ]; then
+    if [ ! -z "${debug}" ]; then
       printf "\n$(output_cyan)Executing$(output_reset) mkdir -p /var/mail ... "
     fi
     mkdir -p /var/mail
-    if [ ! -z "${DEBUG}" ]; then
+    if [ ! -z "${debug}" ]; then
       printf "$(output_cyan)DONE$(output_reset)\n"
     fi
   fi
 }
 
 check_for_su_exec () {
-  local DEBUG=$1
-  local QUIET=$2
+  local debug=$1
+  local quiet=$2
   command -v su-exec > /dev/null
   if [ $? -ne 0 ]; then
 
@@ -345,17 +345,17 @@ check_for_su_exec () {
 
     command -v apk > /dev/null
     if [ $? -eq 0 ]; then
-      apk_add_su_exec "${DEBUG}" "${QUIET}"
+      apk_add_su_exec "${debug}" "${quiet}"
       return $?
     fi
     command -v apt-get > /dev/null
     if [ $? -eq 0 ]; then
-      apt_get_install_su_exec "${DEBUG}" "${QUIET}"
+      apt_get_install_su_exec "${debug}" "${quiet}"
       return $?
     fi
     command -v yum > /dev/null
     if [ $? -eq 0 ]; then
-      yum_install_su_exec "${DEBUG}" "${QUIET}"
+      yum_install_su_exec "${debug}" "${quiet}"
       return $?
     fi
   fi
@@ -380,10 +380,10 @@ does_user_exist () {
 }
 
 exit_with_error () {
-  local EXIT_CODE=$1
-  local MESSAGE=$2
-  (>&2 echo "$(output_red)$(output_bold)ERROR (${EXIT_CODE}):$(output_reset)$(output_red) ${MESSAGE}$(output_reset)")
-  exit ${EXIT_CODE}
+  local exit_code=$1
+  local message=$2
+  (>&2 echo "$(output_red)$(output_bold)ERROR (${exit_code}):$(output_reset)$(output_red) ${message}$(output_reset)")
+  exit ${exit_code}
 }
 
 local_tput () {
@@ -424,14 +424,14 @@ output_yellow () {
 }
 
 print_exit_code () {
-  local DEBUG=$1
-  local EXIT_CODE=$2
-  local QUIET=$3
-  if [ ! -z "${DEBUG}" ] || [ -z ${QUIET} ]; then
-    if [ "${EXIT_CODE}" -eq 0 ]; then
-      printf "\n$(output_green)Exit Code: ${EXIT_CODE}$(output_reset)\n\n"
+  local debug=$1
+  local exit_code=$2
+  local quiet=$3
+  if [ ! -z "${debug}" ] || [ -z ${quiet} ]; then
+    if [ "${exit_code}" -eq 0 ]; then
+      printf "\n$(output_green)Exit Code: ${exit_code}$(output_reset)\n\n"
     else
-      printf "\n$(output_red)Exit Code: ${EXIT_CODE}$(output_reset)\n\n"
+      printf "\n$(output_red)Exit Code: ${exit_code}$(output_reset)\n\n"
     fi
   fi
 }
@@ -441,13 +441,13 @@ print_warning () {
 }
 
 run_as_current_user () {
-  local COMMAND=${1:-sh}
-  local QUIET=$2
-  if [ ! -z "${DEBUG}" ] || [ -z ${QUIET} ]; then
+  local command=${1:-sh}
+  local quiet=$2
+  if [ ! -z "${debug}" ] || [ -z ${quiet} ]; then
     print_warning "You are already running as a non-root user. We have ignored all group and user options."
-    printf "\n$(output_green)Running ( $(output_bold)${COMMAND}$(output_reset)$(output_green) ) as $(id) ...\n\n$(output_reset)"
+    printf "\n$(output_green)Running ( $(output_bold)${command}$(output_reset)$(output_green) ) as $(id) ...\n\n$(output_reset)"
   fi
-  exec ${COMMAND}
+  exec ${command}
 }
 
 run_as_non_root_user () {
@@ -465,25 +465,25 @@ run_as_non_root_user () {
   # List all groups: getent group
   # List all users: getent passwd
 
-  local COMMAND=${1:-sh}
-  local DEBUG=$2
+  local command=${1:-sh}
+  local debug=$2
   local gid=$3
-  local GROUP_NAME=$4
-  local QUIET=$5
+  local group_name=$4
+  local quiet=$5
   local uid=$6
-  local USERNAME=$7
+  local username=$7
 
   does_group_exist "${gid}"
   local gid_exists=$?
 
-  does_group_exist "${GROUP_NAME}"
-  local GROUP_NAME_EXISTS=$?
+  does_group_exist "${group_name}"
+  local group_name_exists=$?
 
   does_user_exist "${uid}"
   local uid_exists=$?
 
-  does_user_exist "${USERNAME}"
-  local USERNAME_EXISTS=$?
+  does_user_exist "${username}"
+  local username_exists=$?
 
   local create_user=
   local create_group=
@@ -493,75 +493,75 @@ run_as_non_root_user () {
 
   update_user_spec \
     "${uid}" \
-    "${USERNAME}" \
-    "${QUIET}" \
+    "${username}" \
+    "${quiet}" \
     uid \
-    USERNAME \
+    username \
     create_user \
     "${uid_exists}" \
-    "${USERNAME_EXISTS}"
-  # After this statement, USERNAME is set; uid might not be set.
+    "${username_exists}"
+  # After this statement, username is set; uid might not be set.
 
   update_group_spec \
     "${create_user}" \
     "${gid_exists}" \
-    "${GROUP_NAME_EXISTS}" \
+    "${group_name_exists}" \
     "${gid}" \
-    "${GROUP_NAME}" \
-    "${QUIET}" \
+    "${group_name}" \
+    "${quiet}" \
     gid \
-    GROUP_NAME \
+    group_name \
     create_group \
-    "${USERNAME}"
+    "${username}"
 
   if [ ! -z "${create_group}" ]; then
     add_group \
-      "${DEBUG}" \
+      "${debug}" \
       "${gid}" \
-      "${GROUP_NAME}" \
-      "${QUIET}" \
+      "${group_name}" \
+      "${quiet}" \
       gid \
-      GROUP_NAME \
+      group_name \
       "${uid}" \
-      "${USERNAME}"
+      "${username}"
   fi
 
   if [ ! -z "${create_user}" ]; then
     add_user \
-      "${DEBUG}" \
+      "${debug}" \
       "${gid}" \
-      "${QUIET}" \
+      "${quiet}" \
       "${uid}" \
-      "${USERNAME}"
+      "${username}"
   fi
 
-  check_for_su_exec "${DEBUG}" "${QUIET}"
-  if [ ! -z "${DEBUG}" ] || [ -z ${QUIET} ]; then
-    printf "\n$(output_green)Running ( su-exec \"${USERNAME}:${gid}\" $(output_bold)${COMMAND}$(output_reset)$(output_green) ) as $(id ${USERNAME}) ...\n\n$(output_reset)"
+  check_for_su_exec "${debug}" "${quiet}"
+  if [ ! -z "${debug}" ] || [ -z ${quiet} ]; then
+    printf "\n$(output_green)Running ( su-exec \"${username}:${gid}\" $(output_bold)${command}$(output_reset)$(output_green) ) as $(id ${username}) ...\n\n$(output_reset)"
   fi
-  exec su-exec "${USERNAME}:${gid}" ${COMMAND}
+  exec su-exec "${username}:${gid}" ${command}
 }
 
 run_non_root () {
-  local COMMAND=$1
-  local DEBUG=$2
+  local command=$1
+  local debug=$2
   local gid=$3
-  local GROUP_NAME=$4
-  local QUIET=$5
+  local group_name=$4
+  local quiet=$5
   local uid=$6
-  local USERNAME=$7
+  local username=$7
 
   if [ "$(whoami)" = "root" ]; then
     run_as_non_root_user \
-      "${COMMAND}" \
-      "${DEBUG}" \
+      "${command}" \
+      "${debug}" \
       "${gid}" \
-      "${GROUP_NAME}" \
-      "${QUIET}" \
+      "${group_name}" \
+      "${quiet}" \
       "${uid}" \
-      "${USERNAME}"
+      "${username}"
   else
-    run_as_current_user "${COMMAND}" "${QUIET}"
+    run_as_current_user "${command}" "${quiet}"
   fi
 }
 
@@ -653,37 +653,37 @@ update_user_spec () {
 }
 
 yum_install_su_exec () {
-  local DEBUG=$1
-  local QUIET=$2
+  local debug=$1
+  local quiet=$2
 
-  if [ ! -z "${DEBUG}" ] || [ -z "${QUIET}" ]; then
+  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
     printf "\n$(output_cyan)Executing$(output_reset) yum install -y gcc make unzip ...\n"
   fi
-  if [ -z "${QUIET}" ]; then
+  if [ -z "${quiet}" ]; then
     yum install -y gcc make unzip
   else
     yum install -y gcc make unzip > /dev/null 2>&1
   fi
-  if [ ! -z "${DEBUG}" ] || [ -z "${QUIET}" ]; then
+  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
     printf "$(output_cyan)DONE$(output_reset)\n"
   fi
 
-  if [ ! -z "${DEBUG}" ] || [ -z "${QUIET}" ]; then
+  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
     printf "\n$(output_cyan)Executing$(output_reset) curl -L https://github.com/ncopa/su-exec/archive/dddd1567b7c76365e1e0aac561287975020a8fad.zip -o su-exec.zip ...\n"
   fi
-  if [ -z "${QUIET}" ]; then
+  if [ -z "${quiet}" ]; then
     curl -L https://github.com/ncopa/su-exec/archive/dddd1567b7c76365e1e0aac561287975020a8fad.zip -o su-exec.zip
   else
     curl --silent -L https://github.com/ncopa/su-exec/archive/dddd1567b7c76365e1e0aac561287975020a8fad.zip -o su-exec.zip
   fi
-  if [ ! -z "${DEBUG}" ] || [ -z "${QUIET}" ]; then
+  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
     printf "$(output_cyan)DONE$(output_reset)\n"
   fi
 
-  if [ ! -z "${DEBUG}" ] || [ -z "${QUIET}" ]; then
+  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
     printf "\n$(output_cyan)Installing$(output_reset) su-exec ...\n"
   fi
-  if [ -z "${QUIET}" ]; then
+  if [ -z "${quiet}" ]; then
     unzip su-exec.zip
     cd su-exec-dddd1567b7c76365e1e0aac561287975020a8fad
     make
@@ -698,7 +698,7 @@ yum_install_su_exec () {
     cd ..
     rm -rf su-exec-dddd1567b7c76365e1e0aac561287975020a8fad
   fi
-  if [ ! -z "${DEBUG}" ] || [ -z "${QUIET}" ]; then
+  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
     printf "$(output_cyan)DONE$(output_reset)\n"
   fi
 }

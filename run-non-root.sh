@@ -412,10 +412,10 @@ main () {
   eval set -- "${parsed_options}"
 
   local command=${RUN_NON_ROOT_COMMAND}
-  local debug=${RUN_NON_ROOT_DEBUG}
+  local debug=
   local gid=${RUN_NON_ROOT_GID}
   local group_name=${RUN_NON_ROOT_GROUP_NAME}
-  local help=${RUN_NON_ROOT_HELP}
+  local help=
   local quiet=
   local uid=${RUN_NON_ROOT_UID}
   local username=${RUN_NON_ROOT_USERNAME}

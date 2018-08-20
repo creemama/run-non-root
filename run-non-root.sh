@@ -703,6 +703,8 @@ yum_install_su_exec () {
   fi
 }
 
+main () {
+
 # "How do I parse command line arguments in Bash?"
 # https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash
 
@@ -790,3 +792,6 @@ run_non_root \
   "${RUN_NON_ROOT_QUIET}" \
   "${RUN_NON_ROOT_UID}" \
   "${RUN_NON_ROOT_USERNAME}"
+}
+
+main $@

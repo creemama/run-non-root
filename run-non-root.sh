@@ -405,49 +405,49 @@ main () {
   # https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash
 
   check_for_getopt
-  RUN_NON_ROOT_PARSED_OPTIONS=`getopt --options=df:g:hqt:u: --longoptions=debug,gid:,group:,help,quiet,uid:,user: --name "$0" -- "$@"`
+  local parsed_options=`getopt --options=df:g:hqt:u: --longoptions=debug,gid:,group:,help,quiet,uid:,user: --name "$0" -- "$@"`
   if [ $? -ne 0 ]; then
     exit 1
   fi
-  eval set -- "${RUN_NON_ROOT_PARSED_OPTIONS}"
+  eval set -- "${parsed_options}"
 
-  RUN_NON_ROOT_COMMAND=${RUN_NON_ROOT_COMMAND}
-  RUN_NON_ROOT_DEBUG=${RUN_NON_ROOT_DEBUG}
-  RUN_NON_ROOT_GID=${RUN_NON_ROOT_GID}
-  RUN_NON_ROOT_GROUP_NAME=${RUN_NON_ROOT_GROUP_NAME}
-  RUN_NON_ROOT_HELP=${RUN_NON_ROOT_HELP}
-  RUN_NON_ROOT_QUIET=
-  RUN_NON_ROOT_UID=${RUN_NON_ROOT_UID}
-  RUN_NON_ROOT_USERNAME=${RUN_NON_ROOT_USERNAME}
+  local command=${RUN_NON_ROOT_COMMAND}
+  local debug=${RUN_NON_ROOT_DEBUG}
+  local gid=${RUN_NON_ROOT_GID}
+  local group_name=${RUN_NON_ROOT_GROUP_NAME}
+  local help=${RUN_NON_ROOT_HELP}
+  local quiet=
+  local uid=${RUN_NON_ROOT_UID}
+  local username=${RUN_NON_ROOT_USERNAME}
 
   while true; do
     case "$1" in
       -d|--debug)
-        RUN_NON_ROOT_DEBUG=y
+        debug=y
         shift
         ;;
       -f|--group)
-        RUN_NON_ROOT_GROUP_NAME="$2"
+        group_name="$2"
         shift 2
         ;;
       -g|--gid)
-        RUN_NON_ROOT_GID="$2"
+        gid="$2"
         shift 2
         ;;
       -h|--help)
-        RUN_NON_ROOT_HELP=y
+        help=y
         shift
         ;;
       -q|--quiet)
-        RUN_NON_ROOT_QUIET=y
+        quiet=y
         shift
         ;;
       -t|--user)
-        RUN_NON_ROOT_USERNAME="$2"
+        username="$2"
         shift 2
         ;;
       -u|--uid)
-        RUN_NON_ROOT_UID="$2"
+        uid="$2"
         shift 2
         ;;
       --)
@@ -460,34 +460,34 @@ main () {
     esac
   done
 
-  RUN_NON_ROOT_COMMAND="$@"
+  command="$@"
 
-  if [ ! -z "${RUN_NON_ROOT_DEBUG}" ]; then
+  if [ ! -z "${debug}" ]; then
     echo
     echo "$(output_cyan)Command Options:$(output_reset)"
-    echo "  $(output_cyan)RUN_NON_ROOT_COMMAND=$(output_reset)${RUN_NON_ROOT_COMMAND}"
-    echo "  $(output_cyan)RUN_NON_ROOT_DEBUG=$(output_reset)${RUN_NON_ROOT_DEBUG}"
-    echo "  $(output_cyan)RUN_NON_ROOT_GID=$(output_reset)${RUN_NON_ROOT_GID}"
-    echo "  $(output_cyan)RUN_NON_ROOT_GROUP_NAME=$(output_reset)${RUN_NON_ROOT_GROUP_NAME}"
-    echo "  $(output_cyan)RUN_NON_ROOT_HELP=$(output_reset)${RUN_NON_ROOT_HELP}"
-    echo "  $(output_cyan)RUN_NON_ROOT_QUIET=$(output_reset)${RUN_NON_ROOT_QUIET}"
-    echo "  $(output_cyan)RUN_NON_ROOT_UID=$(output_reset)${RUN_NON_ROOT_UID}"
-    echo "  $(output_cyan)RUN_NON_ROOT_USERNAME=$(output_reset)${RUN_NON_ROOT_USERNAME}"
+    echo "  $(output_cyan)command=$(output_reset)${command}"
+    echo "  $(output_cyan)debug=$(output_reset)${debug}"
+    echo "  $(output_cyan)gid=$(output_reset)${gid}"
+    echo "  $(output_cyan)group_name=$(output_reset)${group_name}"
+    echo "  $(output_cyan)help=$(output_reset)${help}"
+    echo "  $(output_cyan)quiet=$(output_reset)${quiet}"
+    echo "  $(output_cyan)uid=$(output_reset)${uid}"
+    echo "  $(output_cyan)username=$(output_reset)${username}"
   fi
 
-  if [ ! -z ${RUN_NON_ROOT_HELP} ]; then
+  if [ ! -z ${help} ]; then
     print_help
     exit 0
   fi
 
   run_non_root \
-    "${RUN_NON_ROOT_COMMAND}" \
-    "${RUN_NON_ROOT_DEBUG}" \
-    "${RUN_NON_ROOT_GID}" \
-    "${RUN_NON_ROOT_GROUP_NAME}" \
-    "${RUN_NON_ROOT_QUIET}" \
-    "${RUN_NON_ROOT_UID}" \
-    "${RUN_NON_ROOT_USERNAME}"
+    "${command}" \
+    "${debug}" \
+    "${gid}" \
+    "${group_name}" \
+    "${quiet}" \
+    "${uid}" \
+    "${username}"
 }
 
 output_bold () {

@@ -467,7 +467,24 @@ main () {
     esac
   done
 
-  command="$@"
+  # "How to use arguments like $1 $2 … in a for loop?"
+  # https://unix.stackexchange.com/questions/314032/how-to-use-arguments-like-1-2-in-a-for-loop
+  if [ ! -z "$1" ]; then
+    command=$1
+    shift
+    for arg
+      # "How to check if a string has spaces in Bash shell"
+      # https://stackoverflow.com/questions/1473981/how-to-check-if-a-string-has-spaces-in-bash-shell
+      do case "${arg}" in
+        *\ *)
+          command="${command} \"${arg}\""
+          ;;
+        *)
+          command="${command} ${arg}"
+          ;;
+      esac
+    done
+  fi
 
   if [ ! -z "${debug}" ]; then
     echo

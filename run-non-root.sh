@@ -84,7 +84,9 @@ add_group() {
     fi
   fi
 
-  if [ -z "${local_gid}" ] && [ ! -z "${uid}" ]; then
+  if [ -z "${local_gid}" ] \
+  && [ ! -z "${uid}" ] \
+  && [ "${uid}" -eq "${uid}" ] 2> /dev/null; then
     does_group_exist "${uid}"
     local gid_as_uid="$?"
     if [ "${gid_as_uid}" -ne 0 ]; then

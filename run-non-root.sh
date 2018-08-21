@@ -99,7 +99,7 @@ add_group() {
     if [ "${local_gid}" -eq "${local_gid}" ] 2> /dev/null; then
       echo > /dev/null 2>&1
     else
-      exit_with_error 10 "We expected GID to be an integer, but it was ${local_gid}."
+      exit_with_error 2 "We expected GID to be an integer, but it was ${local_gid}."
     fi
     gid_option="--gid ${local_gid}"
   fi
@@ -152,7 +152,7 @@ add_user() {
     if [ "${uid}" -eq "${uid}" ] 2> /dev/null; then
       echo > /dev/null 2>&1
     else
-      exit_with_error 11 "We expected UID to be an integer, but it was ${uid}."
+      exit_with_error 3 "We expected UID to be an integer, but it was ${uid}."
     fi
     uid_option="--uid ""${uid}"
   fi
@@ -183,7 +183,7 @@ add_user() {
     ${uid_option} \
     "${username}"
   if [ "$?" -ne 0 ]; then
-    exit_with_error 7 "We could not add the user ${username} with ID ${uid}."
+    exit_with_error 5 "We could not add the user ${username} with ID ${uid}."
   fi
   if [ ! -z "${debug}" ]; then
     printf "$(output_cyan)DONE$(output_reset)\n"

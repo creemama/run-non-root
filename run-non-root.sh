@@ -564,8 +564,14 @@ run_as_current_user () {
     print_warning "You are already running as a non-root user. We have ignored all group and user options."
     printf "\n$(output_green)Running ( $(output_bold)${command}$(output_reset)$(output_green) ) as $(id) ...\n\n$(output_reset)"
   fi
-  # command is unquoted.
-  exec ${command}
+  # If we had not used eval, then commands like
+  # sh -c "ls -al" or sh -c "echo 'foo bar'"
+  # would have errored with
+  # /usr/local/bin/run-non-root: line 1: exec sh -c "ls -al": not found
+  # 'ls: line 1: syntax error: unterminated quoted string
+  # or
+  # 'foo: line 1: syntax error: unterminated quoted string
+  eval "exec ${command}"
 }
 
 run_as_non_root_user () {
@@ -657,8 +663,14 @@ run_as_non_root_user () {
   if [ ! -z "${debug}" ] || [ -z ${quiet} ]; then
     printf "\n$(output_green)Running ( su-exec \"${username}:${gid}\" $(output_bold)${command}$(output_reset)$(output_green) ) as $(id ${username}) ...\n\n$(output_reset)"
   fi
-  # command is unquoted.
-  exec su-exec "${username}:${gid}" ${command}
+  # If we had not used eval, then commands like
+  # sh -c "ls -al" or sh -c "echo 'foo bar'"
+  # would have errored with
+  # /usr/local/bin/run-non-root: line 1: exec sh -c "ls -al": not found
+  # 'ls: line 1: syntax error: unterminated quoted string
+  # or
+  # 'foo: line 1: syntax error: unterminated quoted string
+  eval "exec su-exec ${username}:${gid} ${command}"
 }
 
 run_non_root () {

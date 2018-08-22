@@ -581,6 +581,15 @@ test_image () {
     "" \
     "sh -c \"echo 'foo bar'\""
 
+  print_test_header "Test calling run-non-root twice in a row."
+
+  test_options \
+    "nonrootgroupadd: group 'nonroot' already exists${before_error}ERROR (4):${after_error} We could not add the group nonroot.${reset}" \
+    "-q -u 0" \
+    "${os}" \
+    "" \
+    "sh -c \"/usr/local/bin/run-non-root -q -- whoami && /usr/local/bin/run-non-root -q -- whoami\""
+
   print_test_header "Test calling run-non-root as a non-root user."
 
   test_options \

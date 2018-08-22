@@ -667,7 +667,7 @@ run_as_non_root_user () {
 
   check_for_su_exec "${debug}" "${quiet}"
   if [ ! -z "${debug}" ] || [ -z ${quiet} ]; then
-    printf "\n$(output_green)Running ( su-exec \"${username}:${gid}\" $(output_bold)${command}$(output_reset)$(output_green) ) as $(id ${username}) ...\n\n$(output_reset)"
+    printf "\n$(output_green)Running ( su-exec ${username}:${gid} $(output_bold)${command}$(output_reset)$(output_green) ) as $(id ${username}) ...\n\n$(output_reset)"
   fi
   # If we had not used eval, then commands like
   # sh -c "ls -al" or sh -c "echo 'foo bar'"
@@ -698,7 +698,9 @@ run_non_root () {
       "${uid}" \
       "${username}"
   else
-    run_as_current_user "${command}" "${quiet}"
+    run_as_current_user \
+      "${command}" \
+      "${quiet}"
   fi
 }
 

@@ -1,12 +1,16 @@
 # run-non-root
 
-Run Linux commands as a non-root user, creating a non-root user if necessary.
+> Run Linux commands as a non-root user, creating a non-root user if necessary.
+
+<p>
+  <a href="https://travis-ci.org/creemama/run-non-root"><img alt="Travis CI Build Status" src="https://img.shields.io/travis/creemama/run-non-root/master.svg?style=flat-square&label=Travis+CI"></a>
+</p>
 
 This allows us to
 
 [**run Docker containers with a non-root user by default**](https://github.com/creemama/docker-run-non-root)
 
-without having to specify a `USER` in our Dockerfiles.
+without having to specify a `USER` with hardcoded UIDs and GIDs in our Dockerfiles.
 
 ```
 Usage:

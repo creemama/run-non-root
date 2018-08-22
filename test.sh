@@ -584,7 +584,7 @@ test_image () {
   print_test_header "Test calling run-non-root twice in a row."
 
   test_options \
-    "nonrootgroupadd: group 'nonroot' already exists${before_error}ERROR (4):${after_error} We could not add the group nonroot.${reset}" \
+    "nonrootnonroot" \
     "-q -u 0" \
     "${os}" \
     "" \

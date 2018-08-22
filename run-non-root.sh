@@ -89,6 +89,12 @@ add_group() {
     does_group_exist "${username}"
     local group_name_as_username_exists="$?"
     if [ "${group_name_as_username_exists}" -eq 0 ]; then
+      if [ "${username}" = "nonroot" ]; then
+        # The nonroot group already exists.
+        eval $return_gid="'$(id -gn ${nonroot})'"
+        eval $return_group_name="'nonroot'"
+        return
+      fi
       local_group_name="nonroot"
     else
       local_group_name="${username}"
@@ -794,6 +800,15 @@ update_user_spec () {
       local_username="nonroot"
     fi
     local_create_user=0
+  fi
+
+  if [ "${local_create_user}" = "0" ] \
+  && [ "${local_username}" = "nonroot" ]; then
+    does_user_exist "nonroot"
+    if [ "$?" -eq 0 ]; then
+      local_uid="`id -u nonroot`"
+      local_create_user=
+    fi
   fi
 
   eval $return_uid="'${local_uid}'"

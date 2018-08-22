@@ -2,7 +2,19 @@
 
 assert_equals() {
   local expected="$1"
-  local actual="`remove_control_characters "${2}"`"
+  local actual="${2}"
+
+  # Modify ps aux output to get consistent output.
+  # nonroot      1  4.0  0.1  49588  3116 pts/0    Rs+  00:00   00:00 ps aux
+  local integer="[0-9][0-9]*"
+  local whitespace="[[:blank:]][[:blank:]]*"
+  local float="[0-9][0-9]*\.[0-9][0-9]*"
+  local time="[0-9][0-9]*:[0-9][0-9]*"
+  actual=`echo "${actual}" | sed -e "s/\(${integer}\)${whitespace}${float}${whitespace}${float}${whitespace}${integer}${whitespace}${integer}/\1/g"`
+  actual=`echo "${actual}" | sed -e "s/${time}${whitespace}${time}//g"`
+
+  actual="`remove_control_characters "${actual}"`"
+
   if [ "${expected}" != "${actual}" ]; then
     printf "$(output_red)ERROR: We expected \"$(output_bold)${expected}$(output_reset)$(output_red)\" but got \"$(output_bold)${actual}\"$(output_reset)\n"
     exit 1
@@ -789,16 +801,6 @@ test_options () {
     ${command}"
   eval "${docker_command}" > test-output.txt
   actual=`cat test-output.txt`
-
-  # Modify ps aux output to get consistent output.
-  # nonroot      1  4.0  0.1  49588  3116 pts/0    Rs+  00:00   00:00 ps aux
-  local integer="[0-9][0-9]*"
-  local whitespace="[[:blank:]][[:blank:]]*"
-  local float="[0-9][0-9]*\.[0-9][0-9]*"
-  local time="[0-9][0-9]*:[0-9][0-9]*"
-  actual=`echo "${actual}" | sed -e "s/\(${integer}\)${whitespace}${float}${whitespace}${float}${whitespace}${integer}${whitespace}${integer}/\1/g"`
-  actual=`echo "${actual}" | sed -e "s/${time}${whitespace}${time}//g"`
-
   assert_equals "${expected}" "${actual}"
   printf "$(output_green)DONE$(output_reset)\n"
 }

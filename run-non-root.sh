@@ -1,7 +1,10 @@
 #!/bin/sh
 
+RUN_NON_ROOT_VERSION=0.1.0
+
 print_help () {
   cat << EOF
+
 Usage:
   run-non-root [options] [--] [COMMAND] [ARGS...]
 
@@ -33,6 +36,7 @@ Options:
                           useraddd; this option is ignored if we are already
                           running as a non-root user; this option overrides the
                           RUN_NON_ROOT_UID environment variable.
+  -v, --version           Ouput the version number of run-non-root.
 
 Environment Variables:
   RUN_NON_ROOT_COMMAND    The command to execute if a command is not given; the
@@ -63,6 +67,9 @@ Examples:
   export RUN_NON_ROOT_UID=1000
   export RUN_NON_ROOT_USERNAME=ec2-user
   run-non-root -- id
+
+Version: ${RUN_NON_ROOT_VERSION}
+
 EOF
 }
 
@@ -413,8 +420,8 @@ main () {
 
   check_for_getopt
   local parsed_options="`getopt \
-    --options=df:g:hqt:u: \
-    --longoptions=debug,gid:,group:,help,quiet,uid:,user: \
+    --options=df:g:hqt:u:v \
+    --longoptions=debug,gid:,group:,help,quiet,uid:,user:,version \
     --name "$0" \
     -- "$@"`"
   if [ "$?" -ne 0 ]; then
@@ -459,6 +466,10 @@ main () {
       -u|--uid)
         uid="$2"
         shift 2
+        ;;
+      -v|--version)
+        echo "${RUN_NON_ROOT_VERSION}"
+        exit 0
         ;;
       --)
         shift

@@ -44,6 +44,7 @@ Options:
                           useraddd; this option is ignored if we are already
                           running as a non-root user; this option overrides the
                           RUN_NON_ROOT_UID environment variable.
+  -v, --version           Ouput the version number of run-non-root.
 
 Environment Variables:
   RUN_NON_ROOT_COMMAND    The command to execute if a command is not given; the

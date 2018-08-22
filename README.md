@@ -95,3 +95,39 @@ chmod +x /usr/local/bin/run-non-root
 ## Docker and `run-non-root`
 
 For more information about using `run-non-root` with Docker, see [docker-run-non-root](https://github.com/creemama/docker-run-non-root).
+
+## Thank you, `su-exec`
+
+We use [`su-exec`](https://github.com/ncopa/su-exec/tree/dddd1567b7c76365e1e0aac561287975020a8fad) to execute commands so that the command given to `run-non-root` does not run as a child of `run-non-root`; the command [replaces](https://linux.die.net/man/3/exec) `run-non-root`.
+
+Consider the following examples using the command:
+```sh
+$ docker run -it --rm creemama/run-non-root:latest --quiet -- ps aux
+```
+
+If we changed `run-non-root` to use `su`, the output would be:
+```
+PID   USER     TIME  COMMAND
+    1 root      0:00 {run-non-root} /bin/sh /usr/local/bin/run-non-root --quiet -- ps aux
+   17 root      0:00 su -c ps aux nonroot
+   18 nonroot   0:00 ps aux
+```
+
+If we changed `run-non-root` to use `exec su`, the output would be:
+```
+PID   USER     TIME  COMMAND
+    1 root      0:00 su -c ps aux nonroot
+   17 nonroot   0:00 ps aux
+```
+
+If we use `exec su-exec` (the current way `run-non-root` executes commands), the output is:
+```
+PID   USER     TIME  COMMAND
+    1 nonroot   0:00 ps aux
+```
+
+We use `su-exec` over `gosu` since `su-exec` does more or less exactly the same thing as `gosu`, but it is only 10 kilobytes instead of 1.8 megabytes; in fact, `gosu` recommends using `su-exec` over itself in its [installation instructions for Alpine Linux](https://github.com/tianon/gosu/blob/caa402be6661f65c93d63bc205bc36ce055558bf/INSTALL.md).
+
+## `tini`
+
+Use the `--init` option to use [`tini`](https://github.com/krallin/tini) with `run-non-root`. `tini` handles zombie reaping and signal forwarding.

@@ -117,7 +117,7 @@ add_group() {
 
   check_for_groupadd "${debug}" "${quiet}"
 
-  if [ ! -z "${debug}" ]; then
+  if [ "${debug}" = "y" ]; then
     printf "\n$(output_cyan)Executing$(output_reset) groupadd ${gid_option} \"${local_group_name}\" ... "
   fi
   # "groupadd(8) - Linux man page"
@@ -131,7 +131,7 @@ add_group() {
     fi
     exit_with_error 4 "We could not add the group ${local_group_name}${gid_part}."
   fi
-  if [ ! -z "${debug}" ]; then
+  if [ "${debug}" = "y" ]; then
     printf "$(output_cyan)DONE$(output_reset)\n"
   fi
 
@@ -172,7 +172,7 @@ add_user() {
 
   # In alpine:3.7, useradd set the shell to /bin/bash even though it doesn't exist.
   # As such, we set "--shell /bin/sh".
-  if [ ! -z "${debug}" ]; then
+  if [ "${debug}" = "y" ]; then
     printf "\n$(output_cyan)Executing$(output_reset) useradd \\ \n"
     printf "  --create-home \\ \n"
     printf "  --gid \"${gid}\" \\ \n"
@@ -196,7 +196,7 @@ add_user() {
   if [ "$?" -ne 0 ]; then
     exit_with_error 5 "We could not add the user ${username} with ID ${uid}."
   fi
-  if [ ! -z "${debug}" ]; then
+  if [ "${debug}" = "y" ]; then
     printf "$(output_cyan)DONE$(output_reset)\n"
   fi
 }
@@ -207,7 +207,7 @@ apk_add_shadow () {
   if [ -z "${quiet}" ]; then
     print_warning "To speed up this command, call \"apk update && apk add shadow\" before executing this command."
   fi
-  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
+  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
     printf "\n$(output_cyan)Executing$(output_reset) apk update && apk add shadow ...\n"
   fi
   if [ -z "${quiet}" ]; then
@@ -215,7 +215,7 @@ apk_add_shadow () {
   else
     apk update > /dev/null && apk add shadow > /dev/null
   fi
-  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
+  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
     printf "$(output_cyan)DONE$(output_reset)\n"
   fi
 }
@@ -226,7 +226,7 @@ apk_add_su_exec () {
   if [ -z "${quiet}" ]; then
     print_warning "To speed up this command, call \"apk update && apk add su-exec\" before executing this command."
   fi
-  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
+  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
     printf "\n$(output_cyan)Executing$(output_reset) apk update && apk add su-exec ...\n"
   fi
   if [ -z "${quiet}" ]; then
@@ -234,7 +234,7 @@ apk_add_su_exec () {
   else
     apk update > /dev/null && apk add su-exec > /dev/null
   fi
-  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
+  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
     printf "$(output_cyan)DONE$(output_reset)\n"
   fi
 }
@@ -243,7 +243,7 @@ apt_get_install_su_exec () {
   local debug="$1"
   local quiet="$2"
 
-  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
+  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
     printf "\n$(output_cyan)Executing$(output_reset) apt-get update ...\n"
   fi
   if [ -z "${quiet}" ]; then
@@ -251,11 +251,11 @@ apt_get_install_su_exec () {
   else
     apt-get update > /dev/null 2>&1
   fi
-  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
+  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
     printf "$(output_cyan)DONE$(output_reset)\n"
   fi
 
-  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
+  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
     printf "\n$(output_cyan)Executing$(output_reset) apt-get install -y curl gcc make unzip ...\n"
   fi
   if [ -z "${quiet}" ]; then
@@ -263,11 +263,11 @@ apt_get_install_su_exec () {
   else
     apt-get install -y curl gcc make unzip > /dev/null 2>&1
   fi
-  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
+  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
     printf "$(output_cyan)DONE$(output_reset)\n"
   fi
 
-  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
+  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
     printf "\n$(output_cyan)Executing$(output_reset) curl -L https://github.com/ncopa/su-exec/archive/dddd1567b7c76365e1e0aac561287975020a8fad.zip -o su-exec.zip ...\n"
   fi
   if [ -z "${quiet}" ]; then
@@ -275,11 +275,11 @@ apt_get_install_su_exec () {
   else
     curl --silent -L https://github.com/ncopa/su-exec/archive/dddd1567b7c76365e1e0aac561287975020a8fad.zip -o su-exec.zip
   fi
-  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
+  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
     printf "$(output_cyan)DONE$(output_reset)\n"
   fi
 
-  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
+  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
     printf "\n$(output_cyan)Installing$(output_reset) su-exec ...\n"
   fi
   if [ -z "${quiet}" ]; then
@@ -297,7 +297,7 @@ apt_get_install_su_exec () {
     cd ..
     rm -rf su-exec-dddd1567b7c76365e1e0aac561287975020a8fad
   fi
-  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
+  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
     printf "$(output_cyan)DONE$(output_reset)\n"
   fi
 }
@@ -366,11 +366,11 @@ check_for_useradd () {
     # In alpine:3.7, unless we execute the following command, we get the
     # following error after calling useradd:
     # Creating mailbox file: No such file or directory
-    if [ ! -z "${debug}" ]; then
+    if [ "${debug}" = "y" ]; then
       printf "\n$(output_cyan)Executing$(output_reset) mkdir -p /var/mail ... "
     fi
     mkdir -p /var/mail
-    if [ ! -z "${debug}" ]; then
+    if [ "${debug}" = "y" ]; then
       printf "$(output_cyan)DONE$(output_reset)\n"
     fi
   fi
@@ -502,7 +502,7 @@ main () {
     done
   fi
 
-  if [ ! -z "${debug}" ]; then
+  if [ "${debug}" = "y" ]; then
     echo
     echo "$(output_cyan)Command Options:$(output_reset)"
     echo "  $(output_cyan)command=$(output_reset)${command}"
@@ -552,7 +552,7 @@ print_exit_code () {
   local debug="$1"
   local exit_code="$2"
   local quiet="$3"
-  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
+  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
     if [ "${exit_code}" -eq 0 ]; then
       printf "\n$(output_green)Exit Code: ${exit_code}$(output_reset)\n\n"
     else
@@ -568,7 +568,7 @@ print_warning () {
 run_as_current_user () {
   local command="${1:-sh}"
   local quiet="$2"
-  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
+  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
     print_warning "You are already running as a non-root user. We have ignored all group and user options."
     printf "\n$(output_green)Running ( $(output_bold)${command}$(output_reset)$(output_green) ) as $(id) ...\n\n$(output_reset)"
   fi
@@ -668,7 +668,7 @@ run_as_non_root_user () {
   fi
 
   check_for_su_exec "${debug}" "${quiet}"
-  if [ ! -z "${debug}" ] || [ -z ${quiet} ]; then
+  if [ "${debug}" = "y" ] || [ -z ${quiet} ]; then
     printf "\n$(output_green)Running ( su-exec ${username}:${gid} $(output_bold)${command}$(output_reset)$(output_green) ) as $(id ${username}) ...\n\n$(output_reset)"
   fi
   # If we had not used eval, then commands like
@@ -805,7 +805,7 @@ yum_install_su_exec () {
   local debug="$1"
   local quiet="$2"
 
-  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
+  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
     printf "\n$(output_cyan)Executing$(output_reset) yum install -y gcc make unzip ...\n"
   fi
   if [ -z "${quiet}" ]; then
@@ -813,11 +813,11 @@ yum_install_su_exec () {
   else
     yum install -y gcc make unzip > /dev/null 2>&1
   fi
-  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
+  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
     printf "$(output_cyan)DONE$(output_reset)\n"
   fi
 
-  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
+  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
     printf "\n$(output_cyan)Executing$(output_reset) curl -L https://github.com/ncopa/su-exec/archive/dddd1567b7c76365e1e0aac561287975020a8fad.zip -o su-exec.zip ...\n"
   fi
   if [ -z "${quiet}" ]; then
@@ -825,11 +825,11 @@ yum_install_su_exec () {
   else
     curl --silent -L https://github.com/ncopa/su-exec/archive/dddd1567b7c76365e1e0aac561287975020a8fad.zip -o su-exec.zip
   fi
-  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
+  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
     printf "$(output_cyan)DONE$(output_reset)\n"
   fi
 
-  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
+  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
     printf "\n$(output_cyan)Installing$(output_reset) su-exec ...\n"
   fi
   if [ -z "${quiet}" ]; then
@@ -847,7 +847,7 @@ yum_install_su_exec () {
     cd ..
     rm -rf su-exec-dddd1567b7c76365e1e0aac561287975020a8fad
   fi
-  if [ ! -z "${debug}" ] || [ -z "${quiet}" ]; then
+  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
     printf "$(output_cyan)DONE$(output_reset)\n"
   fi
 }

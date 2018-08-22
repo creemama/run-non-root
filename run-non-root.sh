@@ -324,31 +324,6 @@ check_for_groupadd () {
   fi
 }
 
-check_for_useradd () {
-  local debug="$1"
-  local quiet="$2"
-  command -v useradd > /dev/null
-  if [ "$?" -ne 0 ]; then
-    command -v apk > /dev/null
-    if [ "$?" -eq 0 ]; then
-      apk_add_shadow "${debug}" "${quiet}"
-    fi
-  fi
-  command -v apk > /dev/null
-  if [ "$?" -eq 0 ]; then
-    # In alpine:3.7, unless we execute the following command, we get the
-    # following error after calling useradd:
-    # Creating mailbox file: No such file or directory
-    if [ ! -z "${debug}" ]; then
-      printf "\n$(output_cyan)Executing$(output_reset) mkdir -p /var/mail ... "
-    fi
-    mkdir -p /var/mail
-    if [ ! -z "${debug}" ]; then
-      printf "$(output_cyan)DONE$(output_reset)\n"
-    fi
-  fi
-}
-
 check_for_su_exec () {
   local debug="$1"
   local quiet="$2"
@@ -372,6 +347,31 @@ check_for_su_exec () {
     if [ "$?" -eq 0 ]; then
       yum_install_su_exec "${debug}" "${quiet}"
       return "$?"
+    fi
+  fi
+}
+
+check_for_useradd () {
+  local debug="$1"
+  local quiet="$2"
+  command -v useradd > /dev/null
+  if [ "$?" -ne 0 ]; then
+    command -v apk > /dev/null
+    if [ "$?" -eq 0 ]; then
+      apk_add_shadow "${debug}" "${quiet}"
+    fi
+  fi
+  command -v apk > /dev/null
+  if [ "$?" -eq 0 ]; then
+    # In alpine:3.7, unless we execute the following command, we get the
+    # following error after calling useradd:
+    # Creating mailbox file: No such file or directory
+    if [ ! -z "${debug}" ]; then
+      printf "\n$(output_cyan)Executing$(output_reset) mkdir -p /var/mail ... "
+    fi
+    mkdir -p /var/mail
+    if [ ! -z "${debug}" ]; then
+      printf "$(output_cyan)DONE$(output_reset)\n"
     fi
   fi
 }

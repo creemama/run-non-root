@@ -25,6 +25,9 @@ Options:
                           running as a non-root user; this option overrides the
                           RUN_NON_ROOT_GID environment variable.
   -h, --help              Output this help message and exit.
+  -i, --init              Run an init (the tini command) that forwards signals
+                          and reaps processes; this matches the docker run
+                          option --init.
   -q, --quiet             Do not output "Running ( COMMAND ) as USER_INFO ..."
                           or warnings; this option does not silence --debug
                           output.
@@ -245,6 +248,25 @@ apk_add_su_exec () {
   fi
 }
 
+apk_add_tini () {
+  local debug="$1"
+  local quiet="$2"
+
+  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
+    printf "\n$(output_cyan)Executing$(output_reset) wget -O /usr/local/bin/tini https://github.com/krallin/tini/releases/download/v0.18.0/tini-static ...\n"
+  fi
+  if [ -z "${quiet}" ]; then
+    wget -O /usr/local/bin/tini https://github.com/krallin/tini/releases/download/v0.18.0/tini-static
+  else
+    wget -O /usr/local/bin/tini https://github.com/krallin/tini/releases/download/v0.18.0/tini-static > /dev/null 2>&1
+  fi
+  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
+    printf "$(output_cyan)DONE$(output_reset)\n"
+  fi
+
+  chmod +x /usr/local/bin/tini
+}
+
 apt_get_install_su_exec () {
   local debug="$1"
   local quiet="$2"
@@ -308,6 +330,49 @@ apt_get_install_su_exec () {
   fi
 }
 
+apt_get_install_tini () {
+  local debug="$1"
+  local quiet="$2"
+
+  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
+    printf "\n$(output_cyan)Executing$(output_reset) apt-get update ...\n"
+  fi
+  if [ -z "${quiet}" ]; then
+    apt-get update
+  else
+    apt-get update > /dev/null 2>&1
+  fi
+  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
+    printf "$(output_cyan)DONE$(output_reset)\n"
+  fi
+
+  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
+    printf "\n$(output_cyan)Executing$(output_reset) apt-get install -y curl ...\n"
+  fi
+  if [ -z "${quiet}" ]; then
+    apt-get install -y curl
+  else
+    apt-get install -y curl > /dev/null 2>&1
+  fi
+  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
+    printf "$(output_cyan)DONE$(output_reset)\n"
+  fi
+
+  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
+    printf "\n$(output_cyan)Executing$(output_reset) curl -L https://github.com/krallin/tini/releases/download/v0.18.0/tini-static -o /usr/local/bin/tini ...\n"
+  fi
+  if [ -z "${quiet}" ]; then
+    curl -L https://github.com/krallin/tini/releases/download/v0.18.0/tini-static -o /usr/local/bin/tini
+  else
+    curl --silent -L https://github.com/krallin/tini/releases/download/v0.18.0/tini-static -o /usr/local/bin/tini
+  fi
+  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
+    printf "$(output_cyan)DONE$(output_reset)\n"
+  fi
+
+  chmod +x /usr/local/bin/tini
+}
+
 check_for_getopt () {
   command -v getopt > /dev/null
   if [ "$?" -ne 0 ]; then
@@ -352,6 +417,29 @@ check_for_su_exec () {
     command -v yum > /dev/null
     if [ "$?" -eq 0 ]; then
       yum_install_su_exec "${debug}" "${quiet}"
+      return "$?"
+    fi
+  fi
+}
+
+check_for_tini() {
+  local debug="$1"
+  local quiet="$2"
+  command -v tini > /dev/null
+  if [ "$?" -ne 0 ]; then
+    command -v apk > /dev/null
+    if [ "$?" -eq 0 ]; then
+      apk_add_tini "${debug}" "${quiet}"
+      return "$?"
+    fi
+    command -v apt-get > /dev/null
+    if [ "$?" -eq 0 ]; then
+      apt_get_install_tini "${debug}" "${quiet}"
+      return "$?"
+    fi
+    command -v yum > /dev/null
+    if [ "$?" -eq 0 ]; then
+      yum_install_tini "${debug}" "${quiet}"
       return "$?"
     fi
   fi
@@ -428,8 +516,8 @@ main () {
 
   check_for_getopt
   local parsed_options="`getopt \
-    --options=df:g:hqt:u:v \
-    --longoptions=debug,gid:,group:,help,quiet,uid:,user:,version \
+    --options=df:g:hiqt:u:v \
+    --longoptions=debug,gid:,group:,help,init,quiet,uid:,user:,version \
     --name "$0" \
     -- "$@"`"
   if [ "$?" -ne 0 ]; then
@@ -441,6 +529,7 @@ main () {
   local debug=
   local gid="${RUN_NON_ROOT_GID}"
   local group_name="${RUN_NON_ROOT_GROUP_NAME}"
+  local init=
   local quiet=
   local uid="${RUN_NON_ROOT_UID}"
   local username="${RUN_NON_ROOT_USERNAME}"
@@ -462,6 +551,10 @@ main () {
       -h|--help)
         print_help
         exit 0
+        ;;
+      -i|--init)
+        init="y"
+        shift
         ;;
       -q|--quiet)
         quiet="y"
@@ -515,6 +608,7 @@ main () {
     echo "  $(output_cyan)debug=$(output_reset)${debug}"
     echo "  $(output_cyan)gid=$(output_reset)${gid}"
     echo "  $(output_cyan)group_name=$(output_reset)${group_name}"
+    echo "  $(output_cyan)init=$(output_reset)${init}"
     echo "  $(output_cyan)quiet=$(output_reset)${quiet}"
     echo "  $(output_cyan)uid=$(output_reset)${uid}"
     echo "  $(output_cyan)username=$(output_reset)${username}"
@@ -525,6 +619,7 @@ main () {
     "${debug}" \
     "${gid}" \
     "${group_name}" \
+    "${init}" \
     "${quiet}" \
     "${uid}" \
     "${username}"
@@ -573,10 +668,19 @@ print_warning () {
 
 run_as_current_user () {
   local command="${1:-sh}"
-  local quiet="$2"
+  local debug="$2"
+  local init="$3"
+  local quiet="$4"
+
+  local tini_part
+  if [ "${init}" = "y" ]; then
+    check_for_tini "${debug}" "${quiet}"
+    tini_part="tini -- "
+  fi
+
   if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
     print_warning "You are already running as a non-root user. We have ignored all group and user options."
-    printf "\n$(output_green)Running ( $(output_bold)${command}$(output_reset)$(output_green) ) as $(id) ...\n\n$(output_reset)"
+    printf "\n$(output_green)Running ( ${tini_part}$(output_bold)${command}$(output_reset)$(output_green) ) as $(id) ...\n\n$(output_reset)"
   fi
   # If we had not used eval, then commands like
   # sh -c "ls -al" or sh -c "echo 'foo bar'"
@@ -585,7 +689,7 @@ run_as_current_user () {
   # 'ls: line 1: syntax error: unterminated quoted string
   # or
   # 'foo: line 1: syntax error: unterminated quoted string
-  eval "exec ${command}"
+  eval "exec ${tini_part}${command}"
 }
 
 run_as_non_root_user () {
@@ -607,9 +711,10 @@ run_as_non_root_user () {
   local debug="$2"
   local gid="$3"
   local group_name="$4"
-  local quiet="$5"
-  local uid="$6"
-  local username="$7"
+  local init="$5"
+  local quiet="$6"
+  local uid="$7"
+  local username="$8"
 
   does_group_exist "${gid}"
   local gid_exists="$?"
@@ -673,9 +778,15 @@ run_as_non_root_user () {
       "${username}"
   fi
 
+  local tini_part
+  if [ "${init}" = "y" ]; then
+    check_for_tini "${debug}" "${quiet}"
+    tini_part="tini -- "
+  fi
+
   check_for_su_exec "${debug}" "${quiet}"
   if [ "${debug}" = "y" ] || [ -z ${quiet} ]; then
-    printf "\n$(output_green)Running ( su-exec ${username}:${gid} $(output_bold)${command}$(output_reset)$(output_green) ) as $(id ${username}) ...\n\n$(output_reset)"
+    printf "\n$(output_green)Running ( su-exec ${username}:${gid} ${tini_part}$(output_bold)${command}$(output_reset)$(output_green) ) as $(id ${username}) ...\n\n$(output_reset)"
   fi
   # If we had not used eval, then commands like
   # sh -c "ls -al" or sh -c "echo 'foo bar'"
@@ -684,7 +795,7 @@ run_as_non_root_user () {
   # 'ls: line 1: syntax error: unterminated quoted string
   # or
   # 'foo: line 1: syntax error: unterminated quoted string
-  eval "exec su-exec ${username}:${gid} ${command}"
+  eval "exec su-exec ${username}:${gid} ${tini_part}${command}"
 }
 
 run_non_root () {
@@ -692,9 +803,10 @@ run_non_root () {
   local debug="$2"
   local gid="$3"
   local group_name="$4"
-  local quiet="$5"
-  local uid="$6"
-  local username="$7"
+  local init="$5"
+  local quiet="$6"
+  local uid="$7"
+  local username="$8"
 
   if [ "$(whoami)" = "root" ]; then
     run_as_non_root_user \
@@ -702,12 +814,15 @@ run_non_root () {
       "${debug}" \
       "${gid}" \
       "${group_name}" \
+      "${init}" \
       "${quiet}" \
       "${uid}" \
       "${username}"
   else
     run_as_current_user \
       "${command}" \
+      "${debug}" \
+      "${init}" \
       "${quiet}"
   fi
 }
@@ -865,6 +980,25 @@ yum_install_su_exec () {
   if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
     printf "$(output_cyan)DONE$(output_reset)\n"
   fi
+}
+
+yum_install_tini () {
+  local debug="$1"
+  local quiet="$2"
+
+  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
+    printf "\n$(output_cyan)Executing$(output_reset) curl -L https://github.com/krallin/tini/releases/download/v0.18.0/tini-static -o /usr/local/bin/tini ...\n"
+  fi
+  if [ -z "${quiet}" ]; then
+    curl -L https://github.com/krallin/tini/releases/download/v0.18.0/tini-static -o /usr/local/bin/tini
+  else
+    curl --silent -L https://github.com/krallin/tini/releases/download/v0.18.0/tini-static -o /usr/local/bin/tini
+  fi
+  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
+    printf "$(output_cyan)DONE$(output_reset)\n"
+  fi
+
+  chmod +x /usr/local/bin/tini
 }
 
 main "$@"

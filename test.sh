@@ -15,6 +15,9 @@ assert_equals() {
 
   actual="`remove_control_characters "${actual}"`"
 
+  actual=`echo "${actual}" | sed -e "s/\(ps aux${whitespace}\)${integer}/\12/g"`
+  actual=`echo "${actual}" | sed -e "s/\(ps aux[a-z][a-z]*\)${whitespace}${integer}/\1 2/g"`
+
   if [ "${expected}" != "${actual}" ]; then
     printf "$(output_red)ERROR: We expected \"$(output_bold)${expected}$(output_reset)$(output_red)\" but got \"$(output_bold)${actual}\"$(output_reset)\n"
     exit 1
@@ -76,6 +79,24 @@ test_bare_image () {
   printf "$(output_green)Testing ${image} ... $(output_reset)"
 
   local docker_command="docker run \
+    -it \
+    --rm \
+    --volume \
+    `pwd`/run-non-root.sh:/usr/local/bin/run-non-root:ro \
+    ${image} \
+    ${command}"
+  eval "$docker_command" > test-output.txt
+  if [ "$?" -ne 0 ]; then
+    printf "$(output_red)ERROR: \"$(output_bold)$docker_command$(output_reset)$(output_red)\" failed.$(output_reset)\n"
+    exit 1
+  fi
+
+  printf "$(output_green)DONE$(output_reset)\n"
+
+  printf "$(output_green)Testing tini on ${image} ... $(output_reset)"
+
+  command=`echo "${command}" | sed -e "s/\run-non-root/run-non-root -i/g"`
+  docker_command="docker run \
     -it \
     --rm \
     --volume \
@@ -702,6 +723,18 @@ test_image () {
         "${os}" \
         "" \
         "ps aux"
+      test_options \
+        "PID   USER     TIME  COMMAND    1 nonroot   0:00 tini -- ps aux   2 nonroot   0:00 ps aux" \
+        "--init -q" \
+        "${os}" \
+        "" \
+        "ps aux"
+      test_options \
+        "PID   USER     TIME  COMMAND    1 foobar    0:00 tini -- ps aux   2 foobar    0:00 ps aux" \
+        "-iq -t foobar" \
+        "${os}" \
+        "" \
+        "ps aux"
       break
       ;;
     centos|debian|fedora|ubuntu)
@@ -714,6 +747,18 @@ test_image () {
       test_options \
         "USER       PID CPU MEM    VSZ   RSS TTY      STAT START   TIME COMMANDfoobar       1 pts/0    Rs+   ps aux" \
         "-q -t foobar" \
+        "${os}" \
+        "" \
+        "ps aux"
+      test_options \
+        "USER       PID CPU MEM    VSZ   RSS TTY      STAT START   TIME COMMANDnonroot      1 pts/0    Ss    tini -- ps auxnonroot 2 pts/0    R+    ps aux" \
+        "-iq" \
+        "${os}" \
+        "" \
+        "ps aux"
+      test_options \
+        "USER       PID CPU MEM    VSZ   RSS TTY      STAT START   TIME COMMANDfoobar       1 pts/0    Ss    tini -- ps auxfoobar 2 pts/0    R+    ps aux" \
+        "--init -q -t foobar" \
         "${os}" \
         "" \
         "ps aux"

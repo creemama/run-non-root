@@ -33,6 +33,9 @@ Options:
                           running as a non-root user; this option overrides the
                           RUN_NON_ROOT_GID environment variable.
   -h, --help              Output this help message and exit.
+  -i, --init              Run an init (the tini command) that forwards signals
+                          and reaps processes; this matches the docker run
+                          option --init.
   -q, --quiet             Do not output "Running ( COMMAND ) as USER_INFO ..."
                           or warnings; this option does not silence --debug
                           output.

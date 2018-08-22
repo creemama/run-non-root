@@ -126,7 +126,7 @@ PID   USER     TIME  COMMAND
     1 nonroot   0:00 ps aux
 ```
 
-We use `su-exec` over `gosu` since `su-exec` does more or less exactly the same thing as `gosu`, but it is only 10 kilobytes instead of 1.8 megabytes; in fact, `gosu` recommends using `su-exec` over itself in its [installation instructions for Alpine Linux](https://github.com/tianon/gosu/blob/caa402be6661f65c93d63bc205bc36ce055558bf/INSTALL.md).
+We use `su-exec` over [`gosu`](https://github.com/tianon/gosu) since `su-exec` does more or less exactly the same thing as `gosu`, but it is only 10 kilobytes instead of 1.8 megabytes; in fact, `gosu` recommends using `su-exec` over itself in its [installation instructions for Alpine Linux](https://github.com/tianon/gosu/blob/caa402be6661f65c93d63bc205bc36ce055558bf/INSTALL.md).
 
 ## `tini`
 

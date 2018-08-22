@@ -1,67 +1,69 @@
 #!/bin/sh
 
 print_help () {
-  echo "Usage:"
-  echo "  run-non-root [options] [--] [COMMAND] [ARGS...]"
-  echo
-  echo "Options:"
-  echo "  -d, --debug             Output debug information; using --quiet does not"
-  echo "                          silence debug output."
-  echo "  -f, --group GROUP_NAME  The group name to use when executing the command; the"
-  echo "                          default group name is USERNAME or nonroot; this"
-  echo "                          option is ignored if we are already running as a"
-  echo "                          non-root user or if the GID already exists; this"
-  echo "                          option overrides the RUN_NON_ROOT_GROUP_NAME"
-  echo "                          environment variable."
-  echo "  -g, --gid GID           The group ID to use when executing the command; the"
-  echo "                          default GID is UID or a new ID determined by"
-  echo "                          groupadd; this option is ignored if we are already"
-  echo "                          running as a non-root user; this option overrides the"
-  echo "                          RUN_NON_ROOT_GID environment variable."
-  echo "  -h, --help              Output this help message and exit."
-  echo "  -q, --quiet             Do not output \"Running ( COMMAND ) as USER_INFO ...\""
-  echo "                          or warnings; this option does not silence --debug"
-  echo "                          output."
-  echo "  -t, --user USERNAME     The username to use when executing the command; the"
-  echo "                          default is nonroot; this option is ignored if we are"
-  echo "                          already running as a non-root user or if the UID"
-  echo "                          already exists; this option overrides the"
-  echo "                          RUN_NON_ROOT_USERNAME environment variable."
-  echo "  -u, --uid UID           The user ID to use when executing the command; the"
-  echo "                          default UID is GID or a new ID determined by"
-  echo "                          useraddd; this option is ignored if we are already"
-  echo "                          running as a non-root user; this option overrides the"
-  echo "                          RUN_NON_ROOT_UID environment variable."
-  echo
-  echo "Environment Variables:"
-  echo "  RUN_NON_ROOT_COMMAND    The command to execute if a command is not given; the"
-  echo "                          default is sh."
-  echo "  RUN_NON_ROOT_GID        The group ID to use when executing the command; see"
-  echo "                          the --gid option for more info."
-  echo "  RUN_NON_ROOT_GROUP      The group name to use when executing the command; see"
-  echo "                          the --group option for more info."
-  echo "  RUN_NON_ROOT_UID        The user ID to use when executing the command; see"
-  echo "                          the --uid option for more info."
-  echo "  RUN_NON_ROOT_USER       The username to use when executing the command; see"
-  echo "                          the --user option for more info."
-  echo
-  echo "Examples:"
-  echo "  # Run sh as a non-root user."
-  echo "  run-non-root"
-  echo
-  echo "  # Run id as a non-root user."
-  echo "  run-non-root -- id"
-  echo
-  echo "  # Run id as a non-root user using options and the given user specification."
-  echo "  run-non-root -f ec2-user -g 1000 -t ec2-user -u 1000 -- id"
-  echo
-  echo "  # Run id as a non-root user using environment variables"
-  echo "  # and the given user specification."
-  echo "  export RUN_NON_ROOT_GID=1000"
-  echo "  export RUN_NON_ROOT_GROUP_NAME=ec2-user"
-  echo "  export RUN_NON_ROOT_UID=1000"
-  echo "  export RUN_NON_ROOT_USERNAME=ec2-user"
-  echo "  run-non-root -- id"
+  cat << EOF
+Usage:
+  run-non-root [options] [--] [COMMAND] [ARGS...]
+
+Options:
+  -d, --debug             Output debug information; using --quiet does not
+                          silence debug output.
+  -f, --group GROUP_NAME  The group name to use when executing the command; the
+                          default group name is USERNAME or nonroot; this
+                          option is ignored if we are already running as a
+                          non-root user or if the GID already exists; this
+                          option overrides the RUN_NON_ROOT_GROUP_NAME
+                          environment variable.
+  -g, --gid GID           The group ID to use when executing the command; the
+                          default GID is UID or a new ID determined by
+                          groupadd; this option is ignored if we are already
+                          running as a non-root user; this option overrides the
+                          RUN_NON_ROOT_GID environment variable.
+  -h, --help              Output this help message and exit.
+  -q, --quiet             Do not output "Running ( COMMAND ) as USER_INFO ..."
+                          or warnings; this option does not silence --debug
+                          output.
+  -t, --user USERNAME     The username to use when executing the command; the
+                          default is nonroot; this option is ignored if we are
+                          already running as a non-root user or if the UID
+                          already exists; this option overrides the
+                          RUN_NON_ROOT_USERNAME environment variable.
+  -u, --uid UID           The user ID to use when executing the command; the
+                          default UID is GID or a new ID determined by
+                          useraddd; this option is ignored if we are already
+                          running as a non-root user; this option overrides the
+                          RUN_NON_ROOT_UID environment variable.
+
+Environment Variables:
+  RUN_NON_ROOT_COMMAND    The command to execute if a command is not given; the
+                          default is sh.
+  RUN_NON_ROOT_GID        The group ID to use when executing the command; see
+                          the --gid option for more info.
+  RUN_NON_ROOT_GROUP      The group name to use when executing the command; see
+                          the --group option for more info.
+  RUN_NON_ROOT_UID        The user ID to use when executing the command; see
+                          the --uid option for more info.
+  RUN_NON_ROOT_USER       The username to use when executing the command; see
+                          the --user option for more info.
+
+Examples:
+  # Run sh as a non-root user.
+  run-non-root
+
+  # Run id as a non-root user.
+  run-non-root -- id
+
+  # Run id as a non-root user using options and the given user specification.
+  run-non-root -f ec2-user -g 1000 -t ec2-user -u 1000 -- id
+
+  # Run id as a non-root user using environment variables
+  # and the given user specification.
+  export RUN_NON_ROOT_GID=1000
+  export RUN_NON_ROOT_GROUP_NAME=ec2-user
+  export RUN_NON_ROOT_UID=1000
+  export RUN_NON_ROOT_USERNAME=ec2-user
+  run-non-root -- id
+EOF
 }
 
 add_group() {

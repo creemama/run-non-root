@@ -56,6 +56,7 @@ Environment Variables:
                           the --uid option for more info.
   RUN_NON_ROOT_USER       The username to use when executing the command; see
                           the --user option for more info.
+
 Examples:
   # Run sh as a non-root user.
   run-non-root

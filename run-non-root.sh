@@ -8,6 +8,8 @@ print_help () {
 Usage:
   run-non-root [options] [--] [COMMAND] [ARGS...]
 
+Run Linux commands as a non-root user, creating a non-root user if necessary.
+
 Options:
   -d, --debug             Output debug information; using --quiet does not
                           silence debug output.

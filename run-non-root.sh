@@ -426,7 +426,6 @@ main () {
   local debug=
   local gid="${RUN_NON_ROOT_GID}"
   local group_name="${RUN_NON_ROOT_GROUP_NAME}"
-  local help=
   local quiet=
   local uid="${RUN_NON_ROOT_UID}"
   local username="${RUN_NON_ROOT_USERNAME}"
@@ -446,8 +445,8 @@ main () {
         shift 2
         ;;
       -h|--help)
-        help="y"
-        shift
+        print_help
+        exit 0
         ;;
       -q|--quiet)
         quiet="y"
@@ -497,15 +496,9 @@ main () {
     echo "  $(output_cyan)debug=$(output_reset)${debug}"
     echo "  $(output_cyan)gid=$(output_reset)${gid}"
     echo "  $(output_cyan)group_name=$(output_reset)${group_name}"
-    echo "  $(output_cyan)help=$(output_reset)${help}"
     echo "  $(output_cyan)quiet=$(output_reset)${quiet}"
     echo "  $(output_cyan)uid=$(output_reset)${uid}"
     echo "  $(output_cyan)username=$(output_reset)${username}"
-  fi
-
-  if [ ! -z "${help}" ]; then
-    print_help
-    exit 0
   fi
 
   run_non_root \

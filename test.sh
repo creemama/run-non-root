@@ -568,18 +568,18 @@ test_image () {
     "uid=9012(ijkl) gid=3456(mnop) groups=3456(mnop)" \
     "-q" \
     "${os}" \
-    "-e RUN_NON_ROOT_GROUP_NAME=mnop -e RUN_NON_ROOT_GID=3456 -e RUN_NON_ROOT_USERNAME=ijkl -e RUN_NON_ROOT_UID=9012"
+    "-e RUN_NON_ROOT_GROUP=mnop -e RUN_NON_ROOT_GID=3456 -e RUN_NON_ROOT_USER=ijkl -e RUN_NON_ROOT_UID=9012"
   test_options \
     "ijkl" \
     "-q" \
     "${os}" \
-    "-e RUN_NON_ROOT_COMMAND=whoami -e RUN_NON_ROOT_GROUP_NAME=mnop -e RUN_NON_ROOT_GID=3456 -e RUN_NON_ROOT_USERNAME=ijkl -e RUN_NON_ROOT_UID=9012" \
+    "-e RUN_NON_ROOT_COMMAND=whoami -e RUN_NON_ROOT_GROUP=mnop -e RUN_NON_ROOT_GID=3456 -e RUN_NON_ROOT_USER=ijkl -e RUN_NON_ROOT_UID=9012" \
     " "
   test_options \
     "uid=1234(abcd) gid=5678(efgh) groups=5678(efgh)" \
     "--quiet -f efgh -g 5678 --user abcd --uid 1234" \
     "${os}" \
-    "-e RUN_NON_ROOT_GROUP_NAME=mnop -e RUN_NON_ROOT_GID=3456 -e RUN_NON_ROOT_USERNAME=ijkl -e RUN_NON_ROOT_UID=9012"
+    "-e RUN_NON_ROOT_GROUP=mnop -e RUN_NON_ROOT_GID=3456 -e RUN_NON_ROOT_USER=ijkl -e RUN_NON_ROOT_UID=9012"
 
   print_test_header "Test commands with options and spaces."
 
@@ -599,13 +599,13 @@ test_image () {
     "mnop" \
     "-q" \
     "${os}" \
-    "-e RUN_NON_ROOT_COMMAND=\"id -gn\" -e RUN_NON_ROOT_GROUP_NAME=mnop -e RUN_NON_ROOT_GID=3456 -e RUN_NON_ROOT_USERNAME=ijkl -e RUN_NON_ROOT_UID=9012" \
+    "-e RUN_NON_ROOT_COMMAND=\"id -gn\" -e RUN_NON_ROOT_GROUP=mnop -e RUN_NON_ROOT_GID=3456 -e RUN_NON_ROOT_USER=ijkl -e RUN_NON_ROOT_UID=9012" \
     " "
   test_options \
     "Lorem ipsum dolor sit amet, consectetur adipiscing elit" \
     "-q" \
     "${os}" \
-    "-e RUN_NON_ROOT_COMMAND=\"echo \\\"Lorem ipsum dolor sit amet, consectetur adipiscing elit\\\"\" -e RUN_NON_ROOT_GROUP_NAME=mnop -e RUN_NON_ROOT_GID=3456 -e RUN_NON_ROOT_USERNAME=ijkl -e RUN_NON_ROOT_UID=9012" \
+    "-e RUN_NON_ROOT_COMMAND=\"echo \\\"Lorem ipsum dolor sit amet, consectetur adipiscing elit\\\"\" -e RUN_NON_ROOT_GROUP=mnop -e RUN_NON_ROOT_GID=3456 -e RUN_NON_ROOT_USER=ijkl -e RUN_NON_ROOT_UID=9012" \
     " "
   test_options \
     "foo bar" \
@@ -690,7 +690,7 @@ test_image () {
     "groupadd: 'foo bar' is not a valid group name${before_error}ERROR (4):${after_error} We could not add the group foo bar.${reset}" \
     "-q" \
     "${os}" \
-    "-e RUN_NON_ROOT_GROUP_NAME=\"foo bar\""
+    "-e RUN_NON_ROOT_GROUP=\"foo bar\""
   test_options \
     "${before_error}ERROR (3):${after_error} We expected UID to be an integer, but it was foo bar.${reset}" \
     "-q" \
@@ -705,7 +705,7 @@ test_image () {
     "groupadd: 'foo bar' is not a valid group name${before_error}ERROR (4):${after_error} We could not add the group foo bar.${reset}" \
     "-q" \
     "${os}" \
-    "-e RUN_NON_ROOT_USERNAME=\"foo bar\""
+    "-e RUN_NON_ROOT_USER=\"foo bar\""
 
   print_test_header "Test ps aux."
 

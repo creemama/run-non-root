@@ -841,7 +841,7 @@ test_options () {
     -it \
     --rm \
     --volume $(pwd)/run-non-root.sh:/usr/local/bin/run-non-root:ro \
-    creemama/run-non-root:0.0.0-${os} \
+    creemama/run-non-root:1.0.0-${os} \
     ${options} \
     ${command}"
   eval "${docker_command}" > test-output.txt

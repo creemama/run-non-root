@@ -42,6 +42,10 @@ output_bold () {
   local_tput bold
 }
 
+output_cyan () {
+  local_tput setaf 6
+}
+
 output_green () {
   local_tput setaf 2
 }
@@ -62,6 +66,10 @@ print_nsn () {
   printf "\n%s\n" "${1}"
 }
 
+print_nsnn () {
+  printf "\n%s\n\n" "${1}"
+}
+
 print_s () {
   printf "%s" "${1}"
 }
@@ -70,9 +78,13 @@ print_sn () {
   printf "%s\n" "${1}"
 }
 
-print_test_header() {
+print_snn () {
+  printf "%s\n\n" "${1}"
+}
+
+print_test_header () {
   local message="$1"
-  print_nsn "$(output_green)$(output_bold)${message}$(output_reset)"
+  print_nsnn "$(output_green)$(output_bold)${message}$(output_reset)"
 }
 
 remove_control_characters () {
@@ -857,19 +869,21 @@ test_options () {
   local os="$3"
   local environment_variables="$4"
   local command="-- ${5:-id}"
-  print_s "$(output_green)Testing ${options}${environment_variables:+ ${environment_variables}} on ${os} ... $(output_reset)"
-  local docker_command="docker run \
-    ${environment_variables} \
-    -it \
-    --rm \
-    --volume $(pwd)/run-non-root.sh:/usr/local/bin/run-non-root:ro \
-    creemama/run-non-root:1.0.0-${os} \
-    ${options} \
-    ${command}"
+  local docker_command="$(
+    print_s "docker run"
+    print_s " ${environment_variables}"
+    print_s " -it"
+    print_s " --rm"
+    print_s " --volume $(pwd)/run-non-root.sh:/usr/local/bin/run-non-root:ro"
+    print_s " creemama/run-non-root:1.0.0-${os}"
+    print_s " ${options} "
+    print_s " ${command}"
+  )"
+  print_sn "$(output_green)Testing $(output_cyan)${docker_command}$(output_reset)$(output_green) ... $(output_reset)"
   eval "${docker_command}" > test-output.txt
   actual=`cat test-output.txt`
+  print_snn "${actual}"
   assert_equals "${expected}" "${actual}"
-  print_sn "$(output_green)DONE$(output_reset)"
 }
 
 test

@@ -649,19 +649,6 @@ output_yellow () {
   local_tput setaf 3
 }
 
-print_exit_code () {
-  local debug="$1"
-  local exit_code="$2"
-  local quiet="$3"
-  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    if [ "${exit_code}" -eq 0 ]; then
-      printf "\n$(output_green)Exit Code: ${exit_code}$(output_reset)\n\n"
-    else
-      printf "\n$(output_red)Exit Code: ${exit_code}$(output_reset)\n\n"
-    fi
-  fi
-}
-
 print_warning () {
   printf "\n$(output_yellow)$(output_bold)WARNING:$(output_reset)$(output_yellow) $1$(output_reset)\n"
 }

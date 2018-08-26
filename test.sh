@@ -10,16 +10,16 @@ assert_equals() {
   local whitespace="[[:blank:]][[:blank:]]*"
   local float="[0-9][0-9]*\.[0-9][0-9]*"
   local time="[0-9][0-9]*:[0-9][0-9]*"
-  actual=`echo "${actual}" | sed -e "s/\(${integer}\)${whitespace}${float}${whitespace}${float}${whitespace}${integer}${whitespace}${integer}/\1/g"`
-  actual=`echo "${actual}" | sed -e "s/${time}${whitespace}${time}//g"`
+  actual=`print_s "${actual}" | sed -e "s/\(${integer}\)${whitespace}${float}${whitespace}${float}${whitespace}${integer}${whitespace}${integer}/\1/g"`
+  actual=`print_s "${actual}" | sed -e "s/${time}${whitespace}${time}//g"`
 
   actual="`remove_control_characters "${actual}"`"
 
-  actual=`echo "${actual}" | sed -e "s/\(ps aux${whitespace}\)${integer}/\12/g"`
-  actual=`echo "${actual}" | sed -e "s/\(ps aux[a-z][a-z]*\)${whitespace}${integer}/\1 2/g"`
+  actual=`print_s "${actual}" | sed -e "s/\(ps aux${whitespace}\)${integer}/\12/g"`
+  actual=`print_s "${actual}" | sed -e "s/\(ps aux[a-z][a-z]*\)${whitespace}${integer}/\1 2/g"`
 
   if [ "${expected}" != "${actual}" ]; then
-    printf "$(output_red)ERROR: We expected \"$(output_bold)${expected}$(output_reset)$(output_red)\" but got \"$(output_bold)${actual}\"$(output_reset)\n"
+    print_sn "$(output_red)ERROR: We expected \"$(output_bold)${expected}$(output_reset)$(output_red)\" but got \"$(output_bold)${actual}\"$(output_reset)"
     exit 1
   fi
 }
@@ -54,14 +54,30 @@ output_reset () {
   local_tput sgr0
 }
 
+print_ns () {
+  printf "\n%s" "${1}"
+}
+
+print_nsn () {
+  printf "\n%s\n" "${1}"
+}
+
+print_s () {
+  printf "%s" "${1}"
+}
+
+print_sn () {
+  printf "%s\n" "${1}"
+}
+
 print_test_header() {
   local message="$1"
-  printf "\n$(output_green)$(output_bold)${message}$(output_reset)\n"
+  print_nsn "$(output_green)$(output_bold)${message}$(output_reset)"
 }
 
 remove_control_characters () {
   local string="$1"
-  echo "${string}" | tr -d '[:cntrl:]' | sed -e "s/%//g"
+  print_s "${string}" | tr -d '[:cntrl:]' | sed -e "s/%//g"
 }
 
 test () {
@@ -76,7 +92,7 @@ test_bare_image () {
   local image="$1"
   local command="$2"
 
-  printf "$(output_green)Testing ${image} ... $(output_reset)"
+  print_s "$(output_green)Testing ${image} ... $(output_reset)"
 
   local docker_command="docker run \
     -it \
@@ -87,15 +103,15 @@ test_bare_image () {
     ${command}"
   eval "$docker_command" > test-output.txt
   if [ "$?" -ne 0 ]; then
-    printf "$(output_red)ERROR: \"$(output_bold)$docker_command$(output_reset)$(output_red)\" failed.$(output_reset)\n"
+    print_sn "$(output_red)ERROR: \"$(output_bold)$docker_command$(output_reset)$(output_red)\" failed.$(output_reset)"
     exit 1
   fi
 
-  printf "$(output_green)DONE$(output_reset)\n"
+  print_sn "$(output_green)DONE$(output_reset)"
 
-  printf "$(output_green)Testing tini on ${image} ... $(output_reset)"
+  print_s "$(output_green)Testing tini on ${image} ... $(output_reset)"
 
-  command=`echo "${command}" | sed -e "s/\run-non-root/run-non-root -i/g"`
+  command=`print_s "${command}" | sed -e "s/\run-non-root/run-non-root -i/g"`
   docker_command="docker run \
     -it \
     --rm \
@@ -105,11 +121,11 @@ test_bare_image () {
     ${command}"
   eval "$docker_command" > test-output.txt
   if [ "$?" -ne 0 ]; then
-    printf "$(output_red)ERROR: \"$(output_bold)$docker_command$(output_reset)$(output_red)\" failed.$(output_reset)\n"
+    print_sn "$(output_red)ERROR: \"$(output_bold)$docker_command$(output_reset)$(output_red)\" failed.$(output_reset)"
     exit 1
   fi
 
-  printf "$(output_green)DONE$(output_reset)\n"
+  print_sn "$(output_green)DONE$(output_reset)"
 }
 
 test_image () {
@@ -131,7 +147,7 @@ test_image () {
       break
       ;;
     *)
-      printf "$(output_red)ERROR: We encountered an unexpected case ${case}.$(output_reset)\n"
+      print_sn "$(output_red)ERROR: We encountered an unexpected case ${case}.$(output_reset)"
       exit 1
       ;;
   esac
@@ -159,7 +175,7 @@ test_image () {
       break
       ;;
     *)
-      printf "$(output_red)ERROR: We encountered an unexpected case ${case}.$(output_reset)\n"
+      print_sn "$(output_red)ERROR: We encountered an unexpected case ${case}.$(output_reset)"
       exit 1
       ;;
   esac
@@ -178,7 +194,7 @@ test_image () {
       break
       ;;
     *)
-      printf "$(output_red)ERROR: We encountered an unexpected case ${case}.$(output_reset)\n"
+      print_sn "$(output_red)ERROR: We encountered an unexpected case ${case}.$(output_reset)"
       exit 1
       ;;
   esac
@@ -594,7 +610,13 @@ test_image () {
     "-q" \
     "${os}" \
     "" \
-    "echo \\\"Lorem ipsum dolor sit amet, consectetur adipiscing elit\\\""
+    "printf \"%s\" \"Lorem ipsum dolor sit amet, consectetur adipiscing elit\""
+  test_options \
+    "Loremipsumdolorsitamet,consecteturadipiscingelit" \
+    "-q" \
+    "${os}" \
+    "" \
+    "printf \"%s\" \"\\\"Lorem ipsum dolor sit amet, consectetur adipiscing elit\\\"\""
   test_options \
     "mnop" \
     "-q" \
@@ -605,14 +627,14 @@ test_image () {
     "Lorem ipsum dolor sit amet, consectetur adipiscing elit" \
     "-q" \
     "${os}" \
-    "-e RUN_NON_ROOT_COMMAND=\"echo \\\"Lorem ipsum dolor sit amet, consectetur adipiscing elit\\\"\" -e RUN_NON_ROOT_GROUP=mnop -e RUN_NON_ROOT_GID=3456 -e RUN_NON_ROOT_USER=ijkl -e RUN_NON_ROOT_UID=9012" \
+    "-e RUN_NON_ROOT_COMMAND=\"printf \"%s\" \\\"Lorem ipsum dolor sit amet, consectetur adipiscing elit\\\"\" -e RUN_NON_ROOT_GROUP=mnop -e RUN_NON_ROOT_GID=3456 -e RUN_NON_ROOT_USER=ijkl -e RUN_NON_ROOT_UID=9012" \
     " "
   test_options \
     "foo bar" \
     "-q" \
     "${os}" \
     "" \
-    "sh -c \"echo 'foo bar'\""
+    "sh -c \"printf '%s' 'foo bar'\""
 
   print_test_header "Test calling run-non-root twice in a row."
 
@@ -636,7 +658,7 @@ test_image () {
     "-q" \
     "${os}" \
     "" \
-    "/usr/local/bin/run-non-root -q -- sh -c \"echo 'foo bar'\""
+    "/usr/local/bin/run-non-root -q -- sh -c \"printf '%s' 'foo bar'\""
 
   print_test_header "Test invalid inputs."
 
@@ -765,7 +787,7 @@ test_image () {
       break
       ;;
     *)
-      printf "$(output_red)ERROR: We encountered an unexpected case ${case}.$(output_reset)\n"
+      print_sn "$(output_red)ERROR: We encountered an unexpected case ${case}.$(output_reset)"
       exit 1
       ;;
   esac
@@ -835,7 +857,7 @@ test_options () {
   local os="$3"
   local environment_variables="$4"
   local command="-- ${5:-id}"
-  printf "$(output_green)Testing ${options}${environment_variables:+ ${environment_variables}} on ${os} ... $(output_reset)"
+  print_s "$(output_green)Testing ${options}${environment_variables:+ ${environment_variables}} on ${os} ... $(output_reset)"
   local docker_command="docker run \
     ${environment_variables} \
     -it \
@@ -847,7 +869,7 @@ test_options () {
   eval "${docker_command}" > test-output.txt
   actual=`cat test-output.txt`
   assert_equals "${expected}" "${actual}"
-  printf "$(output_green)DONE$(output_reset)\n"
+  print_sn "$(output_green)DONE$(output_reset)"
 }
 
 test

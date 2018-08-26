@@ -117,7 +117,7 @@ add_group() {
   local gid_option=
   if [ ! -z "${local_gid}" ]; then
     if [ "${local_gid}" -eq "${local_gid}" ] 2> /dev/null; then
-      echo > /dev/null 2>&1
+      printf "%s" "" > /dev/null 2>&1
     else
       exit_with_error 2 "We expected GID to be an integer, but it was ${local_gid}."
     fi
@@ -127,7 +127,7 @@ add_group() {
   check_for_groupadd "${debug}" "${quiet}"
 
   if [ "${debug}" = "y" ]; then
-    printf "\n$(output_cyan)Executing$(output_reset) groupadd ${gid_option} \"${local_group_name}\" ... "
+    print_ns "$(output_cyan)Executing$(output_reset) groupadd ${gid_option} \"${local_group_name}\" ... "
   fi
   # "groupadd(8) - Linux man page"
   # https://linux.die.net/man/8/groupadd
@@ -141,7 +141,7 @@ add_group() {
     exit_with_error 4 "We could not add the group ${local_group_name}${gid_part}."
   fi
   if [ "${debug}" = "y" ]; then
-    printf "$(output_cyan)DONE$(output_reset)\n"
+    print_sn "$(output_cyan)DONE$(output_reset)"
   fi
 
   if [ -z "${local_gid}" ]; then
@@ -170,7 +170,7 @@ add_user() {
   local uid_option=
   if [ ! -z "${uid}" ]; then
     if [ "${uid}" -eq "${uid}" ] 2> /dev/null; then
-      echo > /dev/null 2>&1
+      printf "%s" "" > /dev/null 2>&1
     else
       exit_with_error 3 "We expected UID to be an integer, but it was ${uid}."
     fi
@@ -182,15 +182,15 @@ add_user() {
   # In alpine:3.7, useradd set the shell to /bin/bash even though it doesn't exist.
   # As such, we set "--shell /bin/sh".
   if [ "${debug}" = "y" ]; then
-    printf "\n$(output_cyan)Executing$(output_reset) useradd \\ \n"
-    printf "  --create-home \\ \n"
-    printf "  --gid \"${gid}\" \\ \n"
-    printf "  --no-log-init \\ \n"
-    printf "  --shell /bin/sh \\ \n"
+    print_nsn "$(output_cyan)Executing$(output_reset) useradd \\ "
+    print_sn "  --create-home \\ "
+    print_sn "  --gid \"${gid}\" \\ "
+    print_sn "  --no-log-init \\ "
+    print_sn "  --shell /bin/sh \\ "
     if [ ! -z "${uid_option}" ]; then
-      printf "  ${uid_option} \\ \n"
+      print_sn "  ${uid_option} \\ "
     fi
-    printf "  \"${username}\" ... "
+    print_s "  \"${username}\" ... "
   fi
   # "useradd(8) - Linux man page"
   # https://linux.die.net/man/8/useradd
@@ -206,7 +206,7 @@ add_user() {
     exit_with_error 5 "We could not add the user ${username} with ID ${uid}."
   fi
   if [ "${debug}" = "y" ]; then
-    printf "$(output_cyan)DONE$(output_reset)\n"
+    print_sn "$(output_cyan)DONE$(output_reset)"
   fi
 }
 
@@ -217,7 +217,7 @@ apk_add_shadow () {
     print_warning "To speed up this command, call \"apk update && apk add shadow\" before executing this command."
   fi
   if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    printf "\n$(output_cyan)Executing$(output_reset) apk update && apk add shadow ...\n"
+    print_nsn "$(output_cyan)Executing$(output_reset) apk update && apk add shadow ..."
   fi
   if [ -z "${quiet}" ]; then
     apk update && apk add shadow
@@ -225,7 +225,7 @@ apk_add_shadow () {
     apk update > /dev/null && apk add shadow > /dev/null
   fi
   if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    printf "$(output_cyan)DONE$(output_reset)\n"
+    print_sn "$(output_cyan)DONE$(output_reset)"
   fi
 }
 
@@ -236,7 +236,7 @@ apk_add_su_exec () {
     print_warning "To speed up this command, call \"apk update && apk add su-exec\" before executing this command."
   fi
   if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    printf "\n$(output_cyan)Executing$(output_reset) apk update && apk add su-exec ...\n"
+    print_nsn "$(output_cyan)Executing$(output_reset) apk update && apk add su-exec ..."
   fi
   if [ -z "${quiet}" ]; then
     apk update && apk add su-exec
@@ -244,7 +244,7 @@ apk_add_su_exec () {
     apk update > /dev/null && apk add su-exec > /dev/null
   fi
   if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    printf "$(output_cyan)DONE$(output_reset)\n"
+    print_sn "$(output_cyan)DONE$(output_reset)"
   fi
 }
 
@@ -253,7 +253,7 @@ apk_add_tini () {
   local quiet="$2"
 
   if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    printf "\n$(output_cyan)Executing$(output_reset) wget -O /usr/local/bin/tini https://github.com/krallin/tini/releases/download/v0.18.0/tini-static ...\n"
+    print_nsn "$(output_cyan)Executing$(output_reset) wget -O /usr/local/bin/tini https://github.com/krallin/tini/releases/download/v0.18.0/tini-static ..."
   fi
   if [ -z "${quiet}" ]; then
     wget -O /usr/local/bin/tini https://github.com/krallin/tini/releases/download/v0.18.0/tini-static
@@ -261,7 +261,7 @@ apk_add_tini () {
     wget -O /usr/local/bin/tini https://github.com/krallin/tini/releases/download/v0.18.0/tini-static > /dev/null 2>&1
   fi
   if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    printf "$(output_cyan)DONE$(output_reset)\n"
+    print_sn "$(output_cyan)DONE$(output_reset)"
   fi
 
   chmod +x /usr/local/bin/tini
@@ -272,7 +272,7 @@ apt_get_install_su_exec () {
   local quiet="$2"
 
   if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    printf "\n$(output_cyan)Executing$(output_reset) apt-get update ...\n"
+    print_nsn "$(output_cyan)Executing$(output_reset) apt-get update ..."
   fi
   if [ -z "${quiet}" ]; then
     apt-get update
@@ -280,11 +280,11 @@ apt_get_install_su_exec () {
     apt-get update > /dev/null 2>&1
   fi
   if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    printf "$(output_cyan)DONE$(output_reset)\n"
+    print_sn "$(output_cyan)DONE$(output_reset)"
   fi
 
   if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    printf "\n$(output_cyan)Executing$(output_reset) apt-get install -y curl gcc make unzip ...\n"
+    print_nsn "$(output_cyan)Executing$(output_reset) apt-get install -y curl gcc make unzip ..."
   fi
   if [ -z "${quiet}" ]; then
     apt-get install -y curl gcc make unzip
@@ -292,11 +292,11 @@ apt_get_install_su_exec () {
     apt-get install -y curl gcc make unzip > /dev/null 2>&1
   fi
   if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    printf "$(output_cyan)DONE$(output_reset)\n"
+    print_sn "$(output_cyan)DONE$(output_reset)"
   fi
 
   if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    printf "\n$(output_cyan)Executing$(output_reset) curl -L https://github.com/ncopa/su-exec/archive/dddd1567b7c76365e1e0aac561287975020a8fad.zip -o su-exec.zip ...\n"
+    print_nsn "$(output_cyan)Executing$(output_reset) curl -L https://github.com/ncopa/su-exec/archive/dddd1567b7c76365e1e0aac561287975020a8fad.zip -o su-exec.zip ..."
   fi
   if [ -z "${quiet}" ]; then
     curl -L https://github.com/ncopa/su-exec/archive/dddd1567b7c76365e1e0aac561287975020a8fad.zip -o su-exec.zip
@@ -304,11 +304,11 @@ apt_get_install_su_exec () {
     curl --silent -L https://github.com/ncopa/su-exec/archive/dddd1567b7c76365e1e0aac561287975020a8fad.zip -o su-exec.zip
   fi
   if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    printf "$(output_cyan)DONE$(output_reset)\n"
+    print_sn "$(output_cyan)DONE$(output_reset)"
   fi
 
   if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    printf "\n$(output_cyan)Installing$(output_reset) su-exec ...\n"
+    print_nsn "$(output_cyan)Installing$(output_reset) su-exec ..."
   fi
   if [ -z "${quiet}" ]; then
     unzip su-exec.zip
@@ -326,7 +326,7 @@ apt_get_install_su_exec () {
     rm -rf su-exec-dddd1567b7c76365e1e0aac561287975020a8fad
   fi
   if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    printf "$(output_cyan)DONE$(output_reset)\n"
+    print_sn "$(output_cyan)DONE$(output_reset)"
   fi
 }
 
@@ -335,7 +335,7 @@ apt_get_install_tini () {
   local quiet="$2"
 
   if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    printf "\n$(output_cyan)Executing$(output_reset) apt-get update ...\n"
+    print_nsn "$(output_cyan)Executing$(output_reset) apt-get update ..."
   fi
   if [ -z "${quiet}" ]; then
     apt-get update
@@ -343,11 +343,11 @@ apt_get_install_tini () {
     apt-get update > /dev/null 2>&1
   fi
   if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    printf "$(output_cyan)DONE$(output_reset)\n"
+    print_sn "$(output_cyan)DONE$(output_reset)"
   fi
 
   if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    printf "\n$(output_cyan)Executing$(output_reset) apt-get install -y curl ...\n"
+    print_nsn "$(output_cyan)Executing$(output_reset) apt-get install -y curl ..."
   fi
   if [ -z "${quiet}" ]; then
     apt-get install -y curl
@@ -355,11 +355,11 @@ apt_get_install_tini () {
     apt-get install -y curl > /dev/null 2>&1
   fi
   if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    printf "$(output_cyan)DONE$(output_reset)\n"
+    print_sn "$(output_cyan)DONE$(output_reset)"
   fi
 
   if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    printf "\n$(output_cyan)Executing$(output_reset) curl -L https://github.com/krallin/tini/releases/download/v0.18.0/tini-static -o /usr/local/bin/tini ...\n"
+    print_nsn "$(output_cyan)Executing$(output_reset) curl -L https://github.com/krallin/tini/releases/download/v0.18.0/tini-static -o /usr/local/bin/tini ..."
   fi
   if [ -z "${quiet}" ]; then
     curl -L https://github.com/krallin/tini/releases/download/v0.18.0/tini-static -o /usr/local/bin/tini
@@ -367,7 +367,7 @@ apt_get_install_tini () {
     curl --silent -L https://github.com/krallin/tini/releases/download/v0.18.0/tini-static -o /usr/local/bin/tini
   fi
   if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    printf "$(output_cyan)DONE$(output_reset)\n"
+    print_sn "$(output_cyan)DONE$(output_reset)"
   fi
 
   chmod +x /usr/local/bin/tini
@@ -461,11 +461,11 @@ check_for_useradd () {
     # following error after calling useradd:
     # Creating mailbox file: No such file or directory
     if [ "${debug}" = "y" ]; then
-      printf "\n$(output_cyan)Executing$(output_reset) mkdir -p /var/mail ... "
+      print_ns "$(output_cyan)Executing$(output_reset) mkdir -p /var/mail ... "
     fi
     mkdir -p /var/mail
     if [ "${debug}" = "y" ]; then
-      printf "$(output_cyan)DONE$(output_reset)\n"
+      print_sn "$(output_cyan)DONE$(output_reset)"
     fi
   fi
 }
@@ -491,7 +491,7 @@ does_user_exist () {
 exit_with_error () {
   local exit_code="$1"
   local message="$2"
-  (>&2 echo "$(output_red)$(output_bold)ERROR (${exit_code}):$(output_reset)$(output_red) ${message}$(output_reset)")
+  (>&2 print_sn "$(output_red)$(output_bold)ERROR (${exit_code}):$(output_reset)$(output_red) ${message}$(output_reset)")
   exit "${exit_code}"
 }
 
@@ -569,7 +569,7 @@ main () {
         shift 2
         ;;
       -v|--version)
-        echo "${RUN_NON_ROOT_VERSION}"
+        print_sn "${RUN_NON_ROOT_VERSION}"
         exit 0
         ;;
       --)
@@ -602,16 +602,18 @@ main () {
   fi
 
   if [ "${debug}" = "y" ]; then
-    echo
-    echo "$(output_cyan)Command Options:$(output_reset)"
-    echo "  $(output_cyan)command=$(output_reset)${command}"
-    echo "  $(output_cyan)debug=$(output_reset)${debug}"
-    echo "  $(output_cyan)gid=$(output_reset)${gid}"
-    echo "  $(output_cyan)group_name=$(output_reset)${group_name}"
-    echo "  $(output_cyan)init=$(output_reset)${init}"
-    echo "  $(output_cyan)quiet=$(output_reset)${quiet}"
-    echo "  $(output_cyan)uid=$(output_reset)${uid}"
-    echo "  $(output_cyan)username=$(output_reset)${username}"
+    cat << EOF
+
+$(output_cyan)Command Options:$(output_reset)
+  $(output_cyan)command=$(output_reset)${command}
+  $(output_cyan)debug=$(output_reset)${debug}
+  $(output_cyan)gid=$(output_reset)${gid}
+  $(output_cyan)group_name=$(output_reset)${group_name}
+  $(output_cyan)init=$(output_reset)${init}
+  $(output_cyan)quiet=$(output_reset)${quiet}
+  $(output_cyan)uid=$(output_reset)${uid}
+  $(output_cyan)username=$(output_reset)${username}
+EOF
   fi
 
   run_non_root \
@@ -649,8 +651,28 @@ output_yellow () {
   local_tput setaf 3
 }
 
+print_ns () {
+  printf "\n%s" "${1}"
+}
+
+print_nsn () {
+  printf "\n%s\n" "${1}"
+}
+
+print_nsnn () {
+  printf "\n%s\n\n" "${1}"
+}
+
+print_s () {
+  printf "%s" "${1}"
+}
+
+print_sn () {
+  printf "%s\n" "${1}"
+}
+
 print_warning () {
-  printf "\n$(output_yellow)$(output_bold)WARNING:$(output_reset)$(output_yellow) $1$(output_reset)\n"
+  print_nsn "$(output_yellow)$(output_bold)WARNING:$(output_reset)$(output_yellow) $1$(output_reset)"
 }
 
 run_as_current_user () {
@@ -667,7 +689,7 @@ run_as_current_user () {
 
   if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
     print_warning "You are already running as a non-root user. We have ignored all group and user options."
-    printf "\n$(output_green)Running ( ${tini_part}$(output_bold)${command}$(output_reset)$(output_green) ) as $(id) ...\n\n$(output_reset)"
+    print_nsnn "$(output_green)Running ( ${tini_part}$(output_bold)${command}$(output_reset)$(output_green) ) as $(id) ...$(output_reset)"
   fi
   # If we had not used eval, then commands like
   # sh -c "ls -al" or sh -c "echo 'foo bar'"
@@ -773,7 +795,7 @@ run_as_non_root_user () {
 
   check_for_su_exec "${debug}" "${quiet}"
   if [ "${debug}" = "y" ] || [ -z ${quiet} ]; then
-    printf "\n$(output_green)Running ( su-exec ${username}:${gid} ${tini_part}$(output_bold)${command}$(output_reset)$(output_green) ) as $(id ${username}) ...\n\n$(output_reset)"
+    print_nsnn "$(output_green)Running ( su-exec ${username}:${gid} ${tini_part}$(output_bold)${command}$(output_reset)$(output_green) ) as $(id ${username}) ...$(output_reset)"
   fi
   # If we had not used eval, then commands like
   # sh -c "ls -al" or sh -c "echo 'foo bar'"
@@ -923,7 +945,7 @@ yum_install_su_exec () {
   local quiet="$2"
 
   if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    printf "\n$(output_cyan)Executing$(output_reset) yum install -y gcc make unzip ...\n"
+    print_nsn "$(output_cyan)Executing$(output_reset) yum install -y gcc make unzip ..."
   fi
   if [ -z "${quiet}" ]; then
     yum install -y gcc make unzip
@@ -931,11 +953,11 @@ yum_install_su_exec () {
     yum install -y gcc make unzip > /dev/null 2>&1
   fi
   if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    printf "$(output_cyan)DONE$(output_reset)\n"
+    print_sn "$(output_cyan)DONE$(output_reset)"
   fi
 
   if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    printf "\n$(output_cyan)Executing$(output_reset) curl -L https://github.com/ncopa/su-exec/archive/dddd1567b7c76365e1e0aac561287975020a8fad.zip -o su-exec.zip ...\n"
+    print_nsn "$(output_cyan)Executing$(output_reset) curl -L https://github.com/ncopa/su-exec/archive/dddd1567b7c76365e1e0aac561287975020a8fad.zip -o su-exec.zip ..."
   fi
   if [ -z "${quiet}" ]; then
     curl -L https://github.com/ncopa/su-exec/archive/dddd1567b7c76365e1e0aac561287975020a8fad.zip -o su-exec.zip
@@ -943,11 +965,11 @@ yum_install_su_exec () {
     curl --silent -L https://github.com/ncopa/su-exec/archive/dddd1567b7c76365e1e0aac561287975020a8fad.zip -o su-exec.zip
   fi
   if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    printf "$(output_cyan)DONE$(output_reset)\n"
+    print_sn "$(output_cyan)DONE$(output_reset)"
   fi
 
   if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    printf "\n$(output_cyan)Installing$(output_reset) su-exec ...\n"
+    print_nsn "$(output_cyan)Installing$(output_reset) su-exec ..."
   fi
   if [ -z "${quiet}" ]; then
     unzip su-exec.zip
@@ -965,7 +987,7 @@ yum_install_su_exec () {
     rm -rf su-exec-dddd1567b7c76365e1e0aac561287975020a8fad
   fi
   if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    printf "$(output_cyan)DONE$(output_reset)\n"
+    print_sn "$(output_cyan)DONE$(output_reset)"
   fi
 }
 
@@ -974,7 +996,7 @@ yum_install_tini () {
   local quiet="$2"
 
   if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    printf "\n$(output_cyan)Executing$(output_reset) curl -L https://github.com/krallin/tini/releases/download/v0.18.0/tini-static -o /usr/local/bin/tini ...\n"
+    print_nsn "$(output_cyan)Executing$(output_reset) curl -L https://github.com/krallin/tini/releases/download/v0.18.0/tini-static -o /usr/local/bin/tini ..."
   fi
   if [ -z "${quiet}" ]; then
     curl -L https://github.com/krallin/tini/releases/download/v0.18.0/tini-static -o /usr/local/bin/tini
@@ -982,7 +1004,7 @@ yum_install_tini () {
     curl --silent -L https://github.com/krallin/tini/releases/download/v0.18.0/tini-static -o /usr/local/bin/tini
   fi
   if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    printf "$(output_cyan)DONE$(output_reset)\n"
+    print_sn "$(output_cyan)DONE$(output_reset)"
   fi
 
   chmod +x /usr/local/bin/tini

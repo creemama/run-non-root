@@ -518,15 +518,22 @@ main () {
   # "How do I parse command line arguments in Bash?"
   # https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash
 
+  # "How create a temporary file in shell script?"
+  # https://unix.stackexchange.com/questions/181937/how-create-a-temporary-file-in-shell-script
+
   check_for_getopt
+  tmpfile=$(mktemp)
   local parsed_options="$(getopt \
     --options=df:g:hiqt:u:v \
     --longoptions=debug,gid:,group:,help,init,quiet,uid:,user:,version \
     --name "$0" \
-    -- "$@")"
-  if [ "$?" -ne 0 ]; then
-    exit 1
+    -- "$@" 2> "${tmpfile}")"
+  local getopt_warnings="$(cat "${tmpfile}")"
+  rm "${tmpfile}"
+  if [ ! -z "${getopt_warnings}" ]; then
+    exit_with_error 1 "There was an error parsing the given options. You may need to (a) remove invalid options or (b) use -- to separate run-non-root's options from the command. Run run-non-root --help for more info.$(printf "\n" "")${getopt_warnings}"
   fi
+
   eval set -- "${parsed_options}"
 
   local command="${RUN_NON_ROOT_COMMAND}"

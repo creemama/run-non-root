@@ -840,7 +840,7 @@ test_image () {
   case "${os}" in
     alpine)
       test_options \
-        "/usr/local/bin/run-non-root: unrecognized option: z" \
+        "ERROR (1): There was an error parsing the given options. You may need to (a) remove invalid options or (b) use -- to separate run-non-root's options from the command. Run run-non-root --help for more info./usr/local/bin/run-non-root: unrecognized option: z" \
         "-q -z" \
         "${os}" \
         "" \
@@ -849,7 +849,7 @@ test_image () {
       ;;
     centos|debian|fedora|ubuntu)
       test_options \
-        "/usr/local/bin/run-non-root: invalid option -- 'z'" \
+        "${before_error}ERROR (1):${after_error} There was an error parsing the given options. You may need to (a) remove invalid options or (b) use -- to separate run-non-root's options from the command. Run run-non-root --help for more info./usr/local/bin/run-non-root: invalid option -- 'z'${reset}" \
         "-q -z" \
         "${os}" \
         "" \

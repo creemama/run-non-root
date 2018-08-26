@@ -624,7 +624,7 @@ test_image () {
     "" \
     "printf \"%s\" \"Lorem ipsum dolor sit amet, consectetur adipiscing elit\""
   test_options \
-    "Loremipsumdolorsitamet,consecteturadipiscingelit" \
+    "\"Lorem ipsum dolor sit amet, consectetur adipiscing elit\"" \
     "-q" \
     "${os}" \
     "" \
@@ -648,7 +648,7 @@ test_image () {
     "" \
     "sh -c \"printf '%s' 'foo bar'\""
   test_options \
-    "The robot said, Iamhuman." \
+    "The robot said, \"I am human.\"" \
     "-q" \
     "${os}" \
     "" \
@@ -671,41 +671,12 @@ test_image () {
     "${os}" \
     "-e RUN_NON_ROOT_COMMAND=\"printf \\\"%s\\\" \\\"The robot said, 'I am human.'\\\"\"" \
     " "
-
-  case "${os}" in
-    alpine)
-      test_options \
-        "/usr/local/bin/run-non-root: eval: line 1: syntax error: unterminated quoted string" \
-        "-q" \
-        "${os}" \
-        "" \
-        "printf \"%s\" \"foo\\\"bar\""
-      break
-      ;;
-    centos|fedora)
-      test_options \
-        "/usr/local/bin/run-non-root: eval: line 807: unexpected EOF while looking for matching \`\"'/usr/local/bin/run-non-root: eval: line 808: syntax error: unexpected end of file" \
-        "-q" \
-        "${os}" \
-        "" \
-        "printf \"%s\" \"foo\\\"bar\""
-      break
-      ;;
-    debian|ubuntu)
-      test_options \
-        "/usr/local/bin/run-non-root: 1: eval: Syntax error: Unterminated quoted string" \
-        "-q" \
-        "${os}" \
-        "" \
-        "printf \"%s\" \"foo\\\"bar\""
-      break
-      ;;
-    *)
-      printf "$(output_red)ERROR: We encountered an unexpected case ${case}.$(output_reset)\n"
-      exit 1
-      ;;
-  esac
-
+  test_options \
+    "foo\"bar" \
+    "-q" \
+    "${os}" \
+    "" \
+    "printf \"%s\" \"foo\\\"bar\""
   test_options \
     "foo\"bar" \
     "-q" \

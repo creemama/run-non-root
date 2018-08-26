@@ -488,6 +488,10 @@ does_user_exist () {
   fi
 }
 
+escape_double_quotation_marks() {
+  print_s "$1" | sed "s/\"/\\\\\"/g"
+}
+
 exit_with_error () {
   local exit_code="$1"
   local message="$2"
@@ -824,17 +828,17 @@ run_non_root () {
 stringify_arguments () {
   # "How to use arguments like $1 $2 … in a for loop?"
   # https://unix.stackexchange.com/questions/314032/how-to-use-arguments-like-1-2-in-a-for-loop
-  local command=$1
+  local command=$(escape_double_quotation_marks "${1}")
   shift
   for arg
     # "How to check if a string has spaces in Bash shell"
     # https://stackoverflow.com/questions/1473981/how-to-check-if-a-string-has-spaces-in-bash-shell
     do case "${arg}" in
       *\ *)
-        command="${command} \"${arg}\""
+        command="${command} \"$(escape_double_quotation_marks "${arg}")\""
         ;;
       *)
-        command="${command} ${arg}"
+        command="${command} $(escape_double_quotation_marks "${arg}")"
         ;;
     esac
   done

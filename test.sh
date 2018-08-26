@@ -609,7 +609,7 @@ test_image () {
     "${os}" \
     "-e RUN_NON_ROOT_GROUP=mnop -e RUN_NON_ROOT_GID=3456 -e RUN_NON_ROOT_USER=ijkl -e RUN_NON_ROOT_UID=9012"
 
-  print_test_header "Test commands with options and spaces."
+  print_test_header "Test commands with options, spaces, quotes, backlashes, and backticks."
 
   test_options \
     "nonroot" \
@@ -647,6 +647,131 @@ test_image () {
     "${os}" \
     "" \
     "sh -c \"printf '%s' 'foo bar'\""
+  test_options \
+    "The robot said, Iamhuman." \
+    "-q" \
+    "${os}" \
+    "" \
+    "printf \"%s\" \"The robot said, \\\"I am human.\\\"\""
+  test_options \
+    "The robot said, \"I am human.\"" \
+    "-q" \
+    "${os}" \
+    "-e RUN_NON_ROOT_COMMAND=\"printf \\\"%s\\\" \\\"The robot said, \\\\\\\"I am human.\\\\\\\"\\\"\"" \
+    " "
+  test_options \
+    "The robot said, 'I am human.'" \
+    "-q" \
+    "${os}" \
+    "" \
+    "echo \"The robot said, 'I am human.'\""
+  test_options \
+    "The robot said, 'I am human.'" \
+    "-q" \
+    "${os}" \
+    "-e RUN_NON_ROOT_COMMAND=\"printf \\\"%s\\\" \\\"The robot said, 'I am human.'\\\"\"" \
+    " "
+
+  case "${os}" in
+    alpine)
+      test_options \
+        "/usr/local/bin/run-non-root: eval: line 1: syntax error: unterminated quoted string" \
+        "-q" \
+        "${os}" \
+        "" \
+        "printf \"%s\" \"foo\\\"bar\""
+      break
+      ;;
+    centos|fedora)
+      test_options \
+        "/usr/local/bin/run-non-root: eval: line 807: unexpected EOF while looking for matching \`\"'/usr/local/bin/run-non-root: eval: line 808: syntax error: unexpected end of file" \
+        "-q" \
+        "${os}" \
+        "" \
+        "printf \"%s\" \"foo\\\"bar\""
+      break
+      ;;
+    debian|ubuntu)
+      test_options \
+        "/usr/local/bin/run-non-root: 1: eval: Syntax error: Unterminated quoted string" \
+        "-q" \
+        "${os}" \
+        "" \
+        "printf \"%s\" \"foo\\\"bar\""
+      break
+      ;;
+    *)
+      printf "$(output_red)ERROR: We encountered an unexpected case ${case}.$(output_reset)\n"
+      exit 1
+      ;;
+  esac
+
+  test_options \
+    "foo\"bar" \
+    "-q" \
+    "${os}" \
+    "-e RUN_NON_ROOT_COMMAND=\"printf \\\"%s\\\" \\\"foo\\\\\\\"bar\\\"\"" \
+    " "
+  test_options \
+    "IO" \
+    "-q" \
+    "${os}" \
+    "" \
+    "printf \"%s\" \"I\\O\""
+  test_options \
+    "IO" \
+    "-q" \
+    "${os}" \
+    "" \
+    "printf \"%s\" \"I\\\\O\""
+  test_options \
+    "I\\O" \
+    "-q" \
+    "${os}" \
+    "-e RUN_NON_ROOT_COMMAND=\"printf \\\"%s\\\" \\\"I\\\\O\\\"\"" \
+    " "
+  test_options \
+    "\`" \
+    "-q" \
+    "${os}" \
+    "" \
+    "printf \"%s\" \"\\\\\\\`\""
+  test_options \
+    "\`" \
+    "-q" \
+    "${os}" \
+    "-e RUN_NON_ROOT_COMMAND=\"printf \\\"%s\\\" \\\"\\\\\\\`\\\"\"" \
+    " "
+  test_options \
+    "/" \
+    "-q" \
+    "${os}" \
+    "" \
+    "printf \"%s\" \"\\\`pwd\\\`\""
+  test_options \
+    "/" \
+    "-q" \
+    "${os}" \
+    "-e RUN_NON_ROOT_COMMAND=\"printf \\\"%s\\\" \\\"\\\`pwd\\\`\\\"\"" \
+    " "
+  test_options \
+    "/" \
+    "-q" \
+    "${os}" \
+    "" \
+    "printf \"%s\" \"\\\$(pwd)\""
+  test_options \
+    "/" \
+    "-q" \
+    "${os}" \
+    "-e RUN_NON_ROOT_COMMAND=\"printf \\\"%s\\\" \\\"\\\$(pwd)\\\"\"" \
+    " "
+  test_options \
+    "I\\O \` / /" \
+    "-q" \
+    "${os}" \
+    "" \
+    "printf \"%s\" \"I\\\\O \\\\\\\` \\\`pwd\\\` \\\$(pwd)\""
 
   print_test_header "Test calling run-non-root twice in a row."
 
@@ -740,6 +865,31 @@ test_image () {
     "-q" \
     "${os}" \
     "-e RUN_NON_ROOT_USER=\"foo bar\""
+
+  case "${os}" in
+    alpine)
+      test_options \
+        "/usr/local/bin/run-non-root: unrecognized option: z" \
+        "-q -z" \
+        "${os}" \
+        "" \
+        "echo"
+      break
+      ;;
+    centos|debian|fedora|ubuntu)
+      test_options \
+        "/usr/local/bin/run-non-root: invalid option -- 'z'" \
+        "-q -z" \
+        "${os}" \
+        "" \
+        "echo"
+      break
+      ;;
+    *)
+      printf "$(output_red)ERROR: We encountered an unexpected case ${case}.$(output_reset)\n"
+      exit 1
+      ;;
+  esac
 
   print_test_header "Test ps aux."
 

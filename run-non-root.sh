@@ -116,11 +116,6 @@ add_group() {
 
   local gid_option=
   if [ ! -z "${local_gid}" ]; then
-    if [ "${local_gid}" -eq "${local_gid}" ] 2> /dev/null; then
-      printf "%s" "" > /dev/null 2>&1
-    else
-      exit_with_error 2 "We expected GID to be an integer, but it was ${local_gid}."
-    fi
     gid_option="--gid ${local_gid}"
   fi
 
@@ -136,9 +131,9 @@ add_group() {
   if [ "$?" -ne 0 ]; then
     local gid_part=
     if [ ! -z "${local_gid}" ]; then
-      gid_part=" with ID ${local_gid}"
+      gid_part=" with ID ( ${local_gid} )"
     fi
-    exit_with_error 4 "We could not add the group ${local_group_name}${gid_part}."
+    exit_with_error 100 "We could not add the group ( ${local_group_name} )${gid_part}."
   fi
   if [ "${debug}" = "y" ]; then
     print_sn "$(output_cyan)DONE$(output_reset)"
@@ -169,11 +164,6 @@ add_user() {
 
   local uid_option=
   if [ ! -z "${uid}" ]; then
-    if [ "${uid}" -eq "${uid}" ] 2> /dev/null; then
-      printf "%s" "" > /dev/null 2>&1
-    else
-      exit_with_error 3 "We expected UID to be an integer, but it was ${uid}."
-    fi
     uid_option="--uid ""${uid}"
   fi
 
@@ -203,7 +193,11 @@ add_user() {
     ${uid_option} \
     "${username}"
   if [ "$?" -ne 0 ]; then
-    exit_with_error 5 "We could not add the user ${username} with ID ${uid}."
+    local uid_part=
+    if [ ! -z "${uid}" ]; then
+      uid_part=" with ID ( ${uid} )"
+    fi
+    exit_with_error 200 "We could not add the user ( ${username} )${uid_part}."
   fi
   if [ "${debug}" = "y" ]; then
     print_sn "$(output_cyan)DONE$(output_reset)"
@@ -514,6 +508,14 @@ local_tput () {
 }
 
 main () {
+  local command="${RUN_NON_ROOT_COMMAND}"
+  local debug=
+  local gid="${RUN_NON_ROOT_GID}"
+  local group_name="${RUN_NON_ROOT_GROUP}"
+  local init=
+  local quiet=
+  local uid="${RUN_NON_ROOT_UID}"
+  local username="${RUN_NON_ROOT_USER}"
 
   # "How do I parse command line arguments in Bash?"
   # https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash
@@ -535,16 +537,6 @@ main () {
   fi
 
   eval set -- "${parsed_options}"
-
-  local command="${RUN_NON_ROOT_COMMAND}"
-  local debug=
-  local gid="${RUN_NON_ROOT_GID}"
-  local group_name="${RUN_NON_ROOT_GROUP}"
-  local init=
-  local quiet=
-  local uid="${RUN_NON_ROOT_UID}"
-  local username="${RUN_NON_ROOT_USER}"
-
   while true; do
     case "$1" in
       -d|--debug)
@@ -588,10 +580,19 @@ main () {
         break
         ;;
       *)
-        exit_with_error 1 "There was an error processing options."
+        exit_with_error 2 "There was an error parsing the given options ( $@ )."
         ;;
     esac
   done
+
+  # The following if statement ensures that we preserve quotation marks in commands.
+
+  # For example, if the user enters
+  # run-non-root -- echo "foo bar"
+  # we want the command to be
+  # echo "foo bar"
+  # and not
+  # echo foo bar
 
   if [ ! -z "$1" ]; then
     command="$(stringify_arguments "$@")"
@@ -610,6 +611,38 @@ $(output_cyan)Command Options:$(output_reset)
   $(output_cyan)uid=$(output_reset)${uid}
   $(output_cyan)username=$(output_reset)${username}
 EOF
+  fi
+
+  # Since we are using eval to execute groupadd and useradd, ensure that users
+  # do not try to inject code via group_name or username through the clever
+  # usage of quotation marks.
+
+  # For example,
+  # malicious_string="foo\"; echo \"bar"
+  # command=$(echo echo \"${malicious_string}\")
+  # echo "${command}"
+  # eval "${command}"
+  # These commands output:
+  # echo "foo"; echo "bar"
+  # foo
+  # bar
+
+  if ! [ -z "${group_name}" ] \
+  && test_contains_double_quotation_mark "${group_name}"; then
+    exit_with_error 3 "The group name must not contain a double quotation mark; it is ( ${group_name} )."
+  fi
+
+  if ! [ -z "${username}" ] \
+  && test_contains_double_quotation_mark "${username}"; then
+    exit_with_error 4 "The username must not contain a double quotation mark; it is ( ${username} )."
+  fi
+
+  if ! [ -z "${gid}" ] && (! test_is_integer "${gid}" || [ "${gid}" -lt 0 ]); then
+    exit_with_error 5 "The GID must be a nonnegative integer; it is ( ${gid} )."
+  fi
+
+  if ! [ -z "${uid}" ] && (! test_is_integer "${uid}" || [ "${uid}" -lt 0 ]); then
+    exit_with_error 6 "The UID must be a nonnegative integer; it is ( ${uid} )."
   fi
 
   run_non_root \
@@ -850,6 +883,15 @@ stringify_arguments () {
     esac
   done
   print_s "${command}"
+}
+
+test_is_integer () {
+  [ "$1" -eq "$1" ] 2> /dev/null
+}
+
+test_contains_double_quotation_mark() {
+  local string="$1"
+  print_s "$1" | grep "\"" > /dev/null
 }
 
 update_group_spec () {

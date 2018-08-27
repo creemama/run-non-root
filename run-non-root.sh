@@ -1,5 +1,24 @@
 #!/bin/sh
 
+# "Defensive BASH programming"
+# https://news.ycombinator.com/item?id=10736584
+
+# "Use the Unofficial Bash Strict Mode (Unless You Looove Debugging)"
+# http://redsymbol.net/articles/unofficial-bash-strict-mode/
+
+# "How to recognize whether bash or dash is being used within a script?"
+# https://stackoverflow.com/questions/23011370/how-to-recognize-whether-bash-or-dash-is-being-used-within-a-script
+
+set -o errexit -o nounset
+if [ -n "${BASH_VERSION:-}" ]; then
+  # set -o pipefail fails on Debian 9.5 and Ubuntu 18.04, which use dash by
+  # default. For dash shells, setting IFS produces weird behavior with
+  # statements like
+  #   eval $return_gid="'${local_gid}'"
+  set -o pipefail
+  IFS=$'\n\t'
+fi
+
 RUN_NON_ROOT_VERSION=1.1.0
 
 print_help () {
@@ -113,7 +132,7 @@ add_group() {
   # "groupadd(8) - Linux man page"
   # https://linux.die.net/man/8/groupadd
 
-  eval_command \
+  if ! eval_command \
     "$(
       print_s "groupadd"
       if [ ! -z "${local_gid}" ]; then
@@ -121,10 +140,8 @@ add_group() {
       fi
       print_s " \"${local_group_name}\""
     )" \
-    "${debug}"
-
-  if [ "$?" -ne 0 ]; then
-    local gid_part=
+    "${debug}"; then
+    local gid_part=""
     if [ ! -z "${local_gid}" ]; then
       gid_part=" with ID ( ${local_gid} )"
     fi
@@ -159,7 +176,7 @@ add_user() {
   # In alpine:3.7, useradd set the shell to /bin/bash even though it does not exist.
   # As such, we set "--shell /bin/sh".
 
-  eval_command \
+  if ! eval_command \
     "$(
       print_s "useradd"
       print_s " --create-home"
@@ -171,10 +188,8 @@ add_user() {
       fi
       print_s " \"${username}\""
     )" \
-    "${debug}"
-
-  if [ "$?" -ne 0 ]; then
-    local uid_part=
+    "${debug}"; then
+    local uid_part=""
     if [ ! -z "${uid}" ]; then
       uid_part=" with ID ( ${uid} )"
     fi
@@ -346,10 +361,8 @@ apt_get_install_tini () {
 }
 
 check_for_getopt () {
-  command -v getopt > /dev/null
-  if [ "$?" -ne 0 ]; then
-    command -v yum > /dev/null
-    if [ "$?" -eq 0 ]; then
+  if ! test_command_exists "getopt"; then
+    if test_command_exists "yum"; then
       yum install -y util-linux-ng > /dev/null 2>&1
     fi
   fi
@@ -358,10 +371,8 @@ check_for_getopt () {
 check_for_groupadd () {
   local debug="$1"
   local quiet="$2"
-  command -v groupadd > /dev/null
-  if [ "$?" -ne 0 ]; then
-    command -v apk > /dev/null
-    if [ "$?" -eq 0 ]; then
+  if ! test_command_exists "groupadd"; then
+    if test_command_exists "apk"; then
       apk_add_shadow "${debug}" "${quiet}"
     fi
   fi
@@ -370,24 +381,20 @@ check_for_groupadd () {
 check_for_su_exec () {
   local debug="$1"
   local quiet="$2"
-  command -v su-exec > /dev/null
-  if [ "$?" -ne 0 ]; then
+  if ! test_command_exists "su-exec"; then
 
     # "Package Management Basics: apt, yum, dnf, pkg"
     # https://www.digitalocean.com/community/tutorials/package-management-basics-apt-yum-dnf-pkg.
 
-    command -v apk > /dev/null
-    if [ "$?" -eq 0 ]; then
+    if test_command_exists "apk"; then
       apk_add_su_exec "${debug}" "${quiet}"
       return "$?"
     fi
-    command -v apt-get > /dev/null
-    if [ "$?" -eq 0 ]; then
+    if test_command_exists "apt-get"; then
       apt_get_install_su_exec "${debug}" "${quiet}"
       return "$?"
     fi
-    command -v yum > /dev/null
-    if [ "$?" -eq 0 ]; then
+    if test_command_exists "yum"; then
       yum_install_su_exec "${debug}" "${quiet}"
       return "$?"
     fi
@@ -397,20 +404,16 @@ check_for_su_exec () {
 check_for_tini() {
   local debug="$1"
   local quiet="$2"
-  command -v tini > /dev/null
-  if [ "$?" -ne 0 ]; then
-    command -v apk > /dev/null
-    if [ "$?" -eq 0 ]; then
+  if ! test_command_exists "tini"; then
+    if test_command_exists "apk"; then
       apk_add_tini "${debug}" "${quiet}"
       return "$?"
     fi
-    command -v apt-get > /dev/null
-    if [ "$?" -eq 0 ]; then
+    if test_command_exists "apt-get"; then
       apt_get_install_tini "${debug}" "${quiet}"
       return "$?"
     fi
-    command -v yum > /dev/null
-    if [ "$?" -eq 0 ]; then
+    if test_command_exists "yum"; then
       yum_install_tini "${debug}" "${quiet}"
       return "$?"
     fi
@@ -420,15 +423,12 @@ check_for_tini() {
 check_for_useradd () {
   local debug="$1"
   local quiet="$2"
-  command -v useradd > /dev/null
-  if [ "$?" -ne 0 ]; then
-    command -v apk > /dev/null
-    if [ "$?" -eq 0 ]; then
+  if ! test_command_exists "useradd"; then
+    if test_command_exists "apk"; then
       apk_add_shadow "${debug}" "${quiet}"
     fi
   fi
-  command -v apk > /dev/null
-  if [ "$?" -eq 0 ]; then
+  if test_command_exists "apk"; then
     # In alpine:3.7, unless we execute the following command, we get the
     # following error after calling useradd:
     # Creating mailbox file: No such file or directory
@@ -475,24 +475,16 @@ eval_command () {
   local command="$1"
   local debug="$2"
   [ "${debug}" = "y" ] && print_ns "$(output_cyan)Executing$(output_reset) ${command} ... "
-  eval "${command}"
-  local exit_code="$?"
-  if [ "${exit_code}" -ne 0 ]; then
-    return "${exit_code}"
-  fi
+  eval "${command}" || return "$?"
   [ "${debug}" = "y" ] && print_sn "$(output_cyan)DONE$(output_reset)"
-  return "${exit_code}"
+  return 0
 }
 
 local_tput () {
-  # "No value for $TERM and no -T specified"
-  # https://askubuntu.com/questions/591937/no-value-for-term-and-no-t-specified
-  tty -s > /dev/null 2>&1
-  if [ ! "$?" -eq 0 ]; then
+  if ! test_is_tty; then
     return 0
   fi
-  command -v tput > /dev/null 2>&1
-  if [ "$?" -eq 0 ]; then
+  if test_command_exists "tput"; then
     # $@ is unquoted.
     tput $@
   fi
@@ -500,11 +492,11 @@ local_tput () {
 
 main () {
   local command="${RUN_NON_ROOT_COMMAND:-}"
-  local debug=
+  local debug=""
   local gid="${RUN_NON_ROOT_GID:-}"
   local group_name="${RUN_NON_ROOT_GROUP:-}"
-  local init=
-  local quiet=
+  local init=""
+  local quiet=""
   local uid="${RUN_NON_ROOT_UID:-}"
   local username="${RUN_NON_ROOT_USER:-}"
 
@@ -601,7 +593,7 @@ main () {
   # and not
   #   echo foo bar
 
-  if [ ! -z "$1" ]; then
+  if [ ! -z "${1:-}" ]; then
     command="$(stringify_arguments "$@")"
   fi
 
@@ -729,7 +721,7 @@ run_as_current_user () {
   local init="$3"
   local quiet="$4"
 
-  local tini_part
+  local tini_part=""
   if [ "${init}" = "y" ]; then
     check_for_tini "${debug}" "${quiet}"
     tini_part="tini -- "
@@ -773,20 +765,28 @@ run_as_non_root_user () {
   local uid="$7"
   local username="$8"
 
-  does_group_exist "${gid}"
-  local gid_exists="$?"
+  local gid_exists=1
+  if does_group_exist "${gid}"; then
+    gid_exists=0
+  fi
 
-  does_group_exist "${group_name}"
-  local group_name_exists="$?"
+  local group_name_exists=1
+  if does_group_exist "${group_name}"; then
+    group_name_exists=0
+  fi
 
-  does_user_exist "${uid}"
-  local uid_exists="$?"
+  local uid_exists=1
+  if does_user_exist "${uid}"; then
+    uid_exists=0
+  fi
 
-  does_user_exist "${username}"
-  local username_exists="$?"
+  local username_exists=1
+  if does_user_exist "${username}"; then
+    username_exists=0
+  fi
 
-  local create_user=
-  local create_group=
+  local create_user=""
+  local create_group=""
 
   # "Returning Values from Bash Functions"
   # https://www.linuxjournal.com/content/return-values-bash-functions
@@ -835,7 +835,7 @@ run_as_non_root_user () {
       "${username}"
   fi
 
-  local tini_part
+  local tini_part=""
   if [ "${init}" = "y" ]; then
     check_for_tini "${debug}" "${quiet}"
     tini_part="tini -- "
@@ -904,11 +904,21 @@ stringify_arguments () {
   print_s "${command}"
 }
 
+test_command_exists () {
+  command -v "$1" > /dev/null 2>&1
+}
+
 test_is_integer () {
   [ "$1" -eq "$1" ] 2> /dev/null
 }
 
-test_contains_double_quotation_mark() {
+test_is_tty () {
+  # "No value for $TERM and no -T specified"
+  # https://askubuntu.com/questions/591937/no-value-for-term-and-no-t-specified
+  tty -s > /dev/null 2>&1
+}
+
+test_contains_double_quotation_mark () {
   local string="$1"
   print_s "$1" | grep "\"" > /dev/null
 }
@@ -925,7 +935,7 @@ update_group_spec () {
   local return_create_group="$9"
   local username="${10}"
 
-  local local_create_group=
+  local local_create_group=""
 
   if [ "${gid_exists}" -eq 0 ]; then
     local group_name_of_gid="$(getent group "${local_gid}" | awk -F ":" '{print $1}')"
@@ -943,7 +953,7 @@ update_group_spec () {
       fi
       local_gid="${gid_of_group_name}"
     else
-      local_group_name=
+      local_group_name=""
       local_create_group=0
     fi
   else
@@ -972,7 +982,7 @@ update_user_spec () {
   local uid_exists="$7"
   local username_exists="$8"
 
-  local local_create_user
+  local local_create_user=""
 
   if [ "${uid_exists}" -eq 0 ]; then
     # Using id with a UID does not work in Alpine Linux.
@@ -1005,10 +1015,9 @@ update_user_spec () {
 
   if [ "${local_create_user}" = "0" ] \
   && [ "${local_username}" = "nonroot" ]; then
-    does_user_exist "nonroot"
-    if [ "$?" -eq 0 ]; then
+    if does_user_exist "nonroot"; then
       local_uid="$(id -u nonroot)"
-      local_create_user=
+      local_create_user=""
     fi
   fi
 

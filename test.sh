@@ -1,5 +1,24 @@
 #!/bin/sh
 
+# "Defensive BASH programming"
+# https://news.ycombinator.com/item?id=10736584
+
+# "Use the Unofficial Bash Strict Mode (Unless You Looove Debugging)"
+# http://redsymbol.net/articles/unofficial-bash-strict-mode/
+
+# "How to recognize whether bash or dash is being used within a script?"
+# https://stackoverflow.com/questions/23011370/how-to-recognize-whether-bash-or-dash-is-being-used-within-a-script
+
+set -o errexit -o nounset
+if [ -n "${BASH_VERSION:-}" ]; then
+  # set -o pipefail fails on Debian 9.5 and Ubuntu 18.04, which use dash by
+  # default. For dash shells, setting IFS produces weird behavior with
+  # statements like
+  #   eval $return_gid="'${local_gid}'"
+  set -o pipefail
+  IFS=$'\n\t'
+fi
+
 assert_equals() {
   local expected="$1"
   local actual="${2}"
@@ -145,8 +164,8 @@ test_image () {
   local bare_image_command="$2"
   local os="$3"
 
-  local mail_gid=
-  local daemon_gid=
+  local mail_gid=""
+  local daemon_gid=""
   case "${os}" in
     alpine|centos|fedora)
       mail_gid=12
@@ -164,9 +183,9 @@ test_image () {
       ;;
   esac
 
-  local mail_gid_uid=
-  local twelve_group_uid=
-  local twelve_group_name=
+  local mail_gid_uid=""
+  local twelve_group_uid=""
+  local twelve_group_name=""
   case "${os}" in
     alpine)
       mail_gid_uid=12
@@ -192,9 +211,9 @@ test_image () {
       ;;
   esac
 
-  local before_error
-  local after_error
-  local reset
+  local before_error=""
+  local after_error=""
+  local reset=""
   case "${os}" in
     alpine|fedora)
       break
@@ -1015,7 +1034,7 @@ test_options () {
   local expected="$1"
   local options="$2"
   local os="$3"
-  local environment_variables="$4"
+  local environment_variables="${4:-}"
   local command="-- ${5:-id}"
   local docker_command="$(
     print_s "docker run"
@@ -1028,7 +1047,7 @@ test_options () {
     print_s " ${command}"
   )"
   print_sn "$(output_green)Testing $(output_cyan)${docker_command}$(output_reset)$(output_green) ... $(output_reset)"
-  eval "${docker_command}" > test-output.txt
+  eval "${docker_command}" > test-output.txt || printf "%s\n" "Exit Code: $?"
   actual=`cat test-output.txt`
   print_snn "${actual}"
   assert_equals "${expected}" "${actual}"

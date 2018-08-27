@@ -9,6 +9,7 @@
 # "How to recognize whether bash or dash is being used within a script?"
 # https://stackoverflow.com/questions/23011370/how-to-recognize-whether-bash-or-dash-is-being-used-within-a-script
 
+# set -o xtrace
 set -o errexit -o nounset
 if [ -n "${BASH_VERSION:-}" ]; then
   # set -o pipefail fails on Debian 9.5 and Ubuntu 18.04, which use dash by
@@ -112,6 +113,13 @@ remove_control_characters () {
 }
 
 test () {
+  # "How create a temporary file in shell script?"
+  # https://unix.stackexchange.com/questions/181937/how-create-a-temporary-file-in-shell-script
+  tmpfile=$(mktemp)
+  exec 3> "${tmpfile}"
+  exec 4< "${tmpfile}"
+  rm "${tmpfile}"
+
   test_image "alpine:3.8" "run-non-root -- ps aux" "alpine"
   test_image "centos:7" "run-non-root -- ps aux" "centos"
   test_image "debian:9.5" "sh -c \"apt-get update && apt-get install -y procps && run-non-root ps aux\"" "debian"
@@ -123,40 +131,30 @@ test_bare_image () {
   local image="$1"
   local command="$2"
 
-  print_s "$(output_green)Testing ${image} ... $(output_reset)"
+  print_test_header "Test bare image."
 
-  local docker_command="docker run \
-    -it \
-    --rm \
-    --volume \
-    `pwd`/run-non-root.sh:/usr/local/bin/run-non-root:ro \
-    ${image} \
-    ${command}"
-  eval "$docker_command" > test-output.txt
-  if [ "$?" -ne 0 ]; then
-    print_sn "$(output_red)ERROR: \"$(output_bold)$docker_command$(output_reset)$(output_red)\" failed.$(output_reset)"
-    exit 1
-  fi
+  local docker_command="$(
+    print_s "docker run"
+    print_s " -it"
+    print_s " --rm"
+    print_s " --volume $(pwd)/run-non-root.sh:/usr/local/bin/run-non-root:ro"
+    print_s " ${image}"
+    print_s " ${command}"
+  )"
+  print_sn "$(output_green)Testing $(output_cyan)${docker_command}$(output_reset)$(output_green) ... $(output_reset)"
+  eval "${docker_command}"
 
-  print_sn "$(output_green)DONE$(output_reset)"
-
-  print_s "$(output_green)Testing tini on ${image} ... $(output_reset)"
-
-  command=`print_s "${command}" | sed -e "s/\run-non-root/run-non-root -i/g"`
-  docker_command="docker run \
-    -it \
-    --rm \
-    --volume \
-    `pwd`/run-non-root.sh:/usr/local/bin/run-non-root:ro \
-    ${image} \
-    ${command}"
-  eval "$docker_command" > test-output.txt
-  if [ "$?" -ne 0 ]; then
-    print_sn "$(output_red)ERROR: \"$(output_bold)$docker_command$(output_reset)$(output_red)\" failed.$(output_reset)"
-    exit 1
-  fi
-
-  print_sn "$(output_green)DONE$(output_reset)"
+  command="$(print_s "${command}" | sed -e "s/\run-non-root/run-non-root -i/g")"
+  docker_command="$(
+    print_s "docker run"
+    print_s " -it"
+    print_s " --rm"
+    print_s " --volume $(pwd)/run-non-root.sh:/usr/local/bin/run-non-root:ro"
+    print_s " ${image}"
+    print_s " ${command}"
+  )"
+  print_nsn "$(output_green)Testing $(output_cyan)${docker_command}$(output_reset)$(output_green) ... $(output_reset)"
+  eval "$docker_command"
 }
 
 test_image () {
@@ -971,8 +969,6 @@ test_image () {
       ;;
   esac
 
-  print_test_header "Test bare image."
-
   test_bare_image "${bare_image}" "${bare_image_command}"
 }
 
@@ -1047,8 +1043,8 @@ test_options () {
     print_s " ${command}"
   )"
   print_sn "$(output_green)Testing $(output_cyan)${docker_command}$(output_reset)$(output_green) ... $(output_reset)"
-  eval "${docker_command}" > test-output.txt || printf "%s\n" "Exit Code: $?"
-  actual=`cat test-output.txt`
+  eval "${docker_command}" >&3 || printf "%s\n" "Exit Code: $?"
+  actual="$(cat <&4)"
   print_snn "${actual}"
   assert_equals "${expected}" "${actual}"
 }

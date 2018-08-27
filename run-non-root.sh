@@ -154,53 +154,37 @@ add_user() {
   local uid="$4"
   local username="$5"
 
-  if [ -z "${uid}" ]; then
-    does_user_exist "${gid}"
-    local uid_as_gid_exists="$?"
-    if [ "${uid_as_gid_exists}" -ne 0 ]; then
-      uid="${gid}"
-    fi
-  fi
-
-  local uid_option=
-  if [ ! -z "${uid}" ]; then
-    uid_option="--uid ""${uid}"
+  if [ -z "${uid}" ] && ! does_user_exist "${gid}"; then
+    uid="${gid}"
   fi
 
   check_for_useradd "${debug}" "${quiet}"
 
-  # In alpine:3.7, useradd set the shell to /bin/bash even though it doesn't exist.
-  # As such, we set "--shell /bin/sh".
-  if [ "${debug}" = "y" ]; then
-    print_nsn "$(output_cyan)Executing$(output_reset) useradd \\ "
-    print_sn "  --create-home \\ "
-    print_sn "  --gid \"${gid}\" \\ "
-    print_sn "  --no-log-init \\ "
-    print_sn "  --shell /bin/sh \\ "
-    if [ ! -z "${uid_option}" ]; then
-      print_sn "  ${uid_option} \\ "
-    fi
-    print_s "  \"${username}\" ... "
-  fi
   # "useradd(8) - Linux man page"
   # https://linux.die.net/man/8/useradd
-  # uid_option is unquoted.
-  useradd \
-    --create-home \
-    --gid "${gid}" \
-    --no-log-init \
-    --shell /bin/sh \
-    ${uid_option} \
-    "${username}"
+
+  # In alpine:3.7, useradd set the shell to /bin/bash even though it does not exist.
+  # As such, we set "--shell /bin/sh".
+
+  eval_command \
+    "$(
+      print_s "useradd"
+      print_s " --create-home"
+      print_s " --gid \"${gid}\""
+      print_s " --no-log-init"
+      print_s " --shell /bin/sh"
+      if [ ! -z "${uid}" ]; then
+        print_s " --uid \"${uid}\""
+      fi
+      print_s " \"${username}\""
+    )" \
+    "${debug}"
   if [ "$?" -ne 0 ]; then
     local uid_part=
     if [ ! -z "${uid}" ]; then
       uid_part=" with ID ( ${uid} )"
     fi
     exit_with_error 200 "We could not add the user ( ${username} )${uid_part}."
-  fi
-  if [ "${debug}" = "y" ]; then
-    print_sn "$(output_cyan)DONE$(output_reset)"
   fi
 }
 
@@ -491,6 +475,19 @@ exit_with_error () {
   local message="$2"
   (>&2 print_sn "$(output_red)$(output_bold)ERROR (${exit_code}):$(output_reset)$(output_red) ${message}$(output_reset)")
   exit "${exit_code}"
+}
+
+eval_command () {
+  local command="$1"
+  local debug="$2"
+  [ "${debug}" = "y" ] && print_ns "$(output_cyan)Executing$(output_reset) ${command} ... "
+  eval "${command}"
+  local exit_code="$?"
+  if [ "${exit_code}" -ne 0 ]; then
+    return "${exit_code}"
+  fi
+  [ "${debug}" = "y" ] && print_sn "$(output_cyan)DONE$(output_reset)"
+  return "${exit_code}"
 }
 
 local_tput () {

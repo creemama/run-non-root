@@ -179,6 +179,7 @@ add_user() {
       print_s " \"${username}\""
     )" \
     "${debug}"
+
   if [ "$?" -ne 0 ]; then
     local uid_part=
     if [ ! -z "${uid}" ]; then
@@ -522,15 +523,25 @@ main () {
 
   check_for_getopt
   tmpfile=$(mktemp)
-  local parsed_options="$(getopt \
-    --options=df:g:hiqt:u:v \
-    --longoptions=debug,gid:,group:,help,init,quiet,uid:,user:,version \
-    --name "$0" \
-    -- "$@" 2> "${tmpfile}")"
+  local parsed_options="$(
+    getopt \
+      --options=df:g:hiqt:u:v \
+      --longoptions=debug,gid:,group:,help,init,quiet,uid:,user:,version \
+      --name "$0" \
+      -- "$@" 2> "${tmpfile}"
+  )"
   local getopt_warnings="$(cat "${tmpfile}")"
   rm "${tmpfile}"
   if [ ! -z "${getopt_warnings}" ]; then
-    exit_with_error 1 "There was an error parsing the given options. You may need to (a) remove invalid options or (b) use -- to separate run-non-root's options from the command. Run run-non-root --help for more info.$(printf "\n" "")${getopt_warnings}"
+    exit_with_error 1 \
+      "$(
+        print_s "There was an error parsing the given options. "
+        print_s "You may need to (a) remove invalid options or "
+        print_s "(b) use -- to separate run-non-root's options "
+        print_s "from the command. "
+        print_s "Run run-non-root --help for more info."
+        printf "\n" ""
+      )${getopt_warnings}"
   fi
 
   eval set -- "${parsed_options}"
@@ -582,14 +593,15 @@ main () {
     esac
   done
 
-  # The following if statement ensures that we preserve quotation marks in commands.
+  # The following if statement ensures that we preserve quotation marks in
+  # commands.
 
   # For example, if the user enters
-  # run-non-root -- echo "foo bar"
+  #   run-non-root -- echo "foo bar"
   # we want the command to be
-  # echo "foo bar"
+  #   echo "foo bar"
   # and not
-  # echo foo bar
+  #   echo foo bar
 
   if [ ! -z "$1" ]; then
     command="$(stringify_arguments "$@")"
@@ -615,31 +627,43 @@ EOF
   # usage of quotation marks.
 
   # For example,
-  # malicious_string="foo\"; echo \"bar"
-  # command=$(echo echo \"${malicious_string}\")
-  # echo "${command}"
-  # eval "${command}"
+  #   malicious_string="foo\"; echo \"bar"
+  #   command=$(echo echo \"${malicious_string}\")
+  #   echo "${command}"
+  #   eval "${command}"
   # These commands output:
-  # echo "foo"; echo "bar"
-  # foo
-  # bar
+  #   echo "foo"; echo "bar"
+  #   foo
+  #   bar
 
   if ! [ -z "${group_name}" ] \
   && test_contains_double_quotation_mark "${group_name}"; then
-    exit_with_error 3 "The group name must not contain a double quotation mark; it is ( ${group_name} )."
+    exit_with_error 3 \
+      "$(
+        print_s "The group name must not contain a double quotation mark; "
+        print_s "it is ( ${group_name} )."
+      )"
   fi
 
   if ! [ -z "${username}" ] \
   && test_contains_double_quotation_mark "${username}"; then
-    exit_with_error 4 "The username must not contain a double quotation mark; it is ( ${username} )."
+    exit_with_error 4 \
+      "$(
+        print_s "The username must not contain a double quotation mark; "
+        print_s "it is ( ${username} )."
+      )"
   fi
 
-  if ! [ -z "${gid}" ] && (! test_is_integer "${gid}" || [ "${gid}" -lt 0 ]); then
-    exit_with_error 5 "The GID must be a nonnegative integer; it is ( ${gid} )."
+  if ! [ -z "${gid}" ] \
+  && (! test_is_integer "${gid}" || [ "${gid}" -lt 0 ]); then
+    exit_with_error 5 \
+      "The GID must be a nonnegative integer; it is ( ${gid} )."
   fi
 
-  if ! [ -z "${uid}" ] && (! test_is_integer "${uid}" || [ "${uid}" -lt 0 ]); then
-    exit_with_error 6 "The UID must be a nonnegative integer; it is ( ${uid} )."
+  if ! [ -z "${uid}" ] \
+  && (! test_is_integer "${uid}" || [ "${uid}" -lt 0 ]); then
+    exit_with_error 6 \
+      "The UID must be a nonnegative integer; it is ( ${uid} )."
   fi
 
   run_non_root \

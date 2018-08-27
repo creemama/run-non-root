@@ -1,6 +1,6 @@
 #!/bin/sh
 
-RUN_NON_ROOT_VERSION=1.0.1
+RUN_NON_ROOT_VERSION=1.1.0
 
 print_help () {
   cat << EOF

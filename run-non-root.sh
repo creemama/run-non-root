@@ -442,24 +442,6 @@ check_for_useradd () {
   fi
 }
 
-test_group_exists () {
-  local gid_or_group_name="$1"
-  if [ -z "${gid_or_group_name}" ]; then
-    return 1
-  else
-    getent group "${gid_or_group_name}" > /dev/null 2>&1
-  fi
-}
-
-test_user_exists () {
-  local uid_or_username="$1"
-  if [ -z "${uid_or_username}" ]; then
-    return 1
-  else
-    getent passwd "${uid_or_username}" > /dev/null 2>&1
-  fi
-}
-
 escape_double_quotation_marks() {
   print_s "$1" | sed "s/\"/\\\\\"/g"
 }
@@ -908,6 +890,11 @@ test_command_exists () {
   command -v "$1" > /dev/null 2>&1
 }
 
+test_contains_double_quotation_mark () {
+  local string="$1"
+  print_s "$1" | grep "\"" > /dev/null
+}
+
 test_is_integer () {
   [ "$1" -eq "$1" ] 2> /dev/null
 }
@@ -918,9 +905,22 @@ test_is_tty () {
   tty -s > /dev/null 2>&1
 }
 
-test_contains_double_quotation_mark () {
-  local string="$1"
-  print_s "$1" | grep "\"" > /dev/null
+test_group_exists () {
+  local gid_or_group_name="$1"
+  if [ -z "${gid_or_group_name}" ]; then
+    return 1
+  else
+    getent group "${gid_or_group_name}" > /dev/null 2>&1
+  fi
+}
+
+test_user_exists () {
+  local uid_or_username="$1"
+  if [ -z "${uid_or_username}" ]; then
+    return 1
+  else
+    getent passwd "${uid_or_username}" > /dev/null 2>&1
+  fi
 }
 
 update_group_spec () {

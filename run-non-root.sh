@@ -89,9 +89,7 @@ add_group() {
   local username="$8"
 
   if [ -z "${local_group_name}" ]; then
-    does_group_exist "${username}"
-    local group_name_as_username_exists="$?"
-    if [ "${group_name_as_username_exists}" -eq 0 ]; then
+    if does_group_exist "${username}"; then
       if [ "${username}" = "nonroot" ]; then
         # The nonroot group already exists.
         eval $return_gid="'$(id -gn ${nonroot})'"
@@ -106,37 +104,32 @@ add_group() {
 
   if [ -z "${local_gid}" ] \
   && [ ! -z "${uid}" ] \
-  && [ "${uid}" -eq "${uid}" ] 2> /dev/null; then
-    does_group_exist "${uid}"
-    local gid_as_uid="$?"
-    if [ "${gid_as_uid}" -ne 0 ]; then
-      local_gid="${uid}"
-    fi
-  fi
-
-  local gid_option=
-  if [ ! -z "${local_gid}" ]; then
-    gid_option="--gid ${local_gid}"
+  && ! does_group_exist "${uid}"; then
+    local_gid="${uid}"
   fi
 
   check_for_groupadd "${debug}" "${quiet}"
 
-  if [ "${debug}" = "y" ]; then
-    print_ns "$(output_cyan)Executing$(output_reset) groupadd ${gid_option} \"${local_group_name}\" ... "
-  fi
   # "groupadd(8) - Linux man page"
   # https://linux.die.net/man/8/groupadd
-  # gid_option is unquoted.
-  groupadd ${gid_option} "${local_group_name}"
+
+  eval_command \
+    "$(
+      print_s "groupadd"
+      if [ ! -z "${local_gid}" ]; then
+        print_s " --gid \"${local_gid}\""
+      fi
+      print_s " \"${local_group_name}\""
+    )" \
+    "${debug}"
+
   if [ "$?" -ne 0 ]; then
     local gid_part=
     if [ ! -z "${local_gid}" ]; then
       gid_part=" with ID ( ${local_gid} )"
     fi
-    exit_with_error 100 "We could not add the group ( ${local_group_name} )${gid_part}."
-  fi
-  if [ "${debug}" = "y" ]; then
-    print_sn "$(output_cyan)DONE$(output_reset)"
+    exit_with_error 100 \
+      "We could not add the group ( ${local_group_name} )${gid_part}."
   fi
 
   if [ -z "${local_gid}" ]; then

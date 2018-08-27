@@ -108,7 +108,7 @@ add_group() {
   local username="$8"
 
   if [ -z "${local_group_name}" ]; then
-    if does_group_exist "${username}"; then
+    if test_group_exists "${username}"; then
       if [ "${username}" = "nonroot" ]; then
         # The nonroot group already exists.
         eval $return_gid="'$(id -gn ${nonroot})'"
@@ -123,7 +123,7 @@ add_group() {
 
   if [ -z "${local_gid}" ] \
   && [ -n "${uid}" ] \
-  && ! does_group_exist "${uid}"; then
+  && ! test_group_exists "${uid}"; then
     local_gid="${uid}"
   fi
 
@@ -164,7 +164,7 @@ add_user() {
   local uid="$4"
   local username="$5"
 
-  if [ -z "${uid}" ] && ! does_user_exist "${gid}"; then
+  if [ -z "${uid}" ] && ! test_user_exists "${gid}"; then
     uid="${gid}"
   fi
 
@@ -442,7 +442,7 @@ check_for_useradd () {
   fi
 }
 
-does_group_exist () {
+test_group_exists () {
   local gid_or_group_name="$1"
   if [ -z "${gid_or_group_name}" ]; then
     return 1
@@ -451,7 +451,7 @@ does_group_exist () {
   fi
 }
 
-does_user_exist () {
+test_user_exists () {
   local uid_or_username="$1"
   if [ -z "${uid_or_username}" ]; then
     return 1
@@ -766,22 +766,22 @@ run_as_non_root_user () {
   local username="$8"
 
   local gid_exists=1
-  if does_group_exist "${gid}"; then
+  if test_group_exists "${gid}"; then
     gid_exists=0
   fi
 
   local group_name_exists=1
-  if does_group_exist "${group_name}"; then
+  if test_group_exists "${group_name}"; then
     group_name_exists=0
   fi
 
   local uid_exists=1
-  if does_user_exist "${uid}"; then
+  if test_user_exists "${uid}"; then
     uid_exists=0
   fi
 
   local username_exists=1
-  if does_user_exist "${username}"; then
+  if test_user_exists "${username}"; then
     username_exists=0
   fi
 
@@ -1015,7 +1015,7 @@ update_user_spec () {
 
   if [ "${local_create_user}" = "0" ] \
   && [ "${local_username}" = "nonroot" ]; then
-    if does_user_exist "nonroot"; then
+    if test_user_exists "nonroot"; then
       local_uid="$(id -u nonroot)"
       local_create_user=""
     fi

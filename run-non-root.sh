@@ -140,7 +140,8 @@ add_group() {
       fi
       print_s " \"${local_group_name}\""
     )" \
-    "${debug}"; then
+    "${debug}" \
+    "y"; then
     local gid_part=""
     if [ -n "${local_gid}" ]; then
       gid_part=" with ID ( ${local_gid} )"
@@ -188,7 +189,8 @@ add_user() {
       fi
       print_s " \"${username}\""
     )" \
-    "${debug}"; then
+    "${debug}" \
+    "y"; then
     local uid_part=""
     if [ -n "${uid}" ]; then
       uid_part=" with ID ( ${uid} )"
@@ -200,164 +202,45 @@ add_user() {
 apk_add_shadow () {
   local debug="$1"
   local quiet="$2"
-  if [ -z "${quiet}" ]; then
-    print_warning "To speed up this command, call \"apk update && apk add shadow\" before executing this command."
-  fi
-  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    print_nsn "$(output_cyan)Executing$(output_reset) apk update && apk add shadow ..."
-  fi
-  if [ -z "${quiet}" ]; then
-    apk update && apk add shadow
-  else
-    apk update > /dev/null && apk add shadow > /dev/null
-  fi
-  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    print_sn "$(output_cyan)DONE$(output_reset)"
-  fi
+  eval_command "apk update" "${debug}" "${quiet}"
+  eval_command "apk add shadow" "${debug}" "${quiet}"
 }
 
 apk_add_su_exec () {
   local debug="$1"
   local quiet="$2"
-  if [ -z "${quiet}" ]; then
-    print_warning "To speed up this command, call \"apk update && apk add su-exec\" before executing this command."
-  fi
-  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    print_nsn "$(output_cyan)Executing$(output_reset) apk update && apk add su-exec ..."
-  fi
-  if [ -z "${quiet}" ]; then
-    apk update && apk add su-exec
-  else
-    apk update > /dev/null && apk add su-exec > /dev/null
-  fi
-  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    print_sn "$(output_cyan)DONE$(output_reset)"
-  fi
+  eval_command "apk update" "${debug}" "${quiet}"
+  eval_command "apk add su-exec" "${debug}" "${quiet}"
 }
 
 apk_add_tini () {
   local debug="$1"
   local quiet="$2"
-
-  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    print_nsn "$(output_cyan)Executing$(output_reset) wget -O /usr/local/bin/tini https://github.com/krallin/tini/releases/download/v0.18.0/tini-static ..."
-  fi
-  if [ -z "${quiet}" ]; then
-    wget -O /usr/local/bin/tini https://github.com/krallin/tini/releases/download/v0.18.0/tini-static
-  else
-    wget -O /usr/local/bin/tini https://github.com/krallin/tini/releases/download/v0.18.0/tini-static > /dev/null 2>&1
-  fi
-  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    print_sn "$(output_cyan)DONE$(output_reset)"
-  fi
-
-  chmod +x /usr/local/bin/tini
+  eval_command \
+    "$(
+      print_s "wget"
+      print_s " -O /usr/local/bin/tini"
+      print_s " https://github.com/krallin/tini/releases/download/v0.18.0/tini-static"
+    )" \
+    "${debug}" \
+    "${quiet}"
+  eval_command "chmod +x /usr/local/bin/tini" "${debug}" "y"
 }
 
 apt_get_install_su_exec () {
   local debug="$1"
   local quiet="$2"
-
-  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    print_nsn "$(output_cyan)Executing$(output_reset) apt-get update ..."
-  fi
-  if [ -z "${quiet}" ]; then
-    apt-get update
-  else
-    apt-get update > /dev/null 2>&1
-  fi
-  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    print_sn "$(output_cyan)DONE$(output_reset)"
-  fi
-
-  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    print_nsn "$(output_cyan)Executing$(output_reset) apt-get install -y curl gcc make unzip ..."
-  fi
-  if [ -z "${quiet}" ]; then
-    apt-get install -y curl gcc make unzip
-  else
-    apt-get install -y curl gcc make unzip > /dev/null 2>&1
-  fi
-  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    print_sn "$(output_cyan)DONE$(output_reset)"
-  fi
-
-  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    print_nsn "$(output_cyan)Executing$(output_reset) curl -L https://github.com/ncopa/su-exec/archive/dddd1567b7c76365e1e0aac561287975020a8fad.zip -o su-exec.zip ..."
-  fi
-  if [ -z "${quiet}" ]; then
-    curl -L https://github.com/ncopa/su-exec/archive/dddd1567b7c76365e1e0aac561287975020a8fad.zip -o su-exec.zip
-  else
-    curl --silent -L https://github.com/ncopa/su-exec/archive/dddd1567b7c76365e1e0aac561287975020a8fad.zip -o su-exec.zip
-  fi
-  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    print_sn "$(output_cyan)DONE$(output_reset)"
-  fi
-
-  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    print_nsn "$(output_cyan)Installing$(output_reset) su-exec ..."
-  fi
-  if [ -z "${quiet}" ]; then
-    unzip su-exec.zip
-    cd su-exec-dddd1567b7c76365e1e0aac561287975020a8fad
-    make
-    mv su-exec /usr/local/bin
-    cd ..
-    rm -rf su-exec-dddd1567b7c76365e1e0aac561287975020a8fad
-  else
-    unzip su-exec.zip > /dev/null
-    cd su-exec-dddd1567b7c76365e1e0aac561287975020a8fad
-    make > /dev/null
-    mv su-exec /usr/local/bin
-    cd ..
-    rm -rf su-exec-dddd1567b7c76365e1e0aac561287975020a8fad
-  fi
-  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    print_sn "$(output_cyan)DONE$(output_reset)"
-  fi
+  eval_command "apt-get update" "${debug}" "${quiet}"
+  eval_command "apt-get install -y curl gcc make unzip" "${debug}" "${quiet}"
+  curl_su_exec "${debug}" "${quiet}"
 }
 
 apt_get_install_tini () {
   local debug="$1"
   local quiet="$2"
-
-  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    print_nsn "$(output_cyan)Executing$(output_reset) apt-get update ..."
-  fi
-  if [ -z "${quiet}" ]; then
-    apt-get update
-  else
-    apt-get update > /dev/null 2>&1
-  fi
-  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    print_sn "$(output_cyan)DONE$(output_reset)"
-  fi
-
-  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    print_nsn "$(output_cyan)Executing$(output_reset) apt-get install -y curl ..."
-  fi
-  if [ -z "${quiet}" ]; then
-    apt-get install -y curl
-  else
-    apt-get install -y curl > /dev/null 2>&1
-  fi
-  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    print_sn "$(output_cyan)DONE$(output_reset)"
-  fi
-
-  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    print_nsn "$(output_cyan)Executing$(output_reset) curl -L https://github.com/krallin/tini/releases/download/v0.18.0/tini-static -o /usr/local/bin/tini ..."
-  fi
-  if [ -z "${quiet}" ]; then
-    curl -L https://github.com/krallin/tini/releases/download/v0.18.0/tini-static -o /usr/local/bin/tini
-  else
-    curl --silent -L https://github.com/krallin/tini/releases/download/v0.18.0/tini-static -o /usr/local/bin/tini
-  fi
-  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    print_sn "$(output_cyan)DONE$(output_reset)"
-  fi
-
-  chmod +x /usr/local/bin/tini
+  eval_command "apt-get update" "${debug}" "${quiet}"
+  eval_command "apt-get install -y curl" "${debug}" "${quiet}"
+  curl_tini "${debug}" "${quiet}"
 }
 
 check_for_getopt () {
@@ -432,14 +315,41 @@ check_for_useradd () {
     # In alpine:3.7, unless we execute the following command, we get the
     # following error after calling useradd:
     # Creating mailbox file: No such file or directory
-    if [ "${debug}" = "y" ]; then
-      print_ns "$(output_cyan)Executing$(output_reset) mkdir -p /var/mail ... "
-    fi
-    mkdir -p /var/mail
-    if [ "${debug}" = "y" ]; then
-      print_sn "$(output_cyan)DONE$(output_reset)"
-    fi
+    eval_command "mkdir -p /var/mail" "${debug}" "y"
   fi
+}
+
+curl_su_exec () {
+  # The -L (or --location) option follows redirects.
+  eval_command \
+    "$(
+      print_s "curl"
+      print_s " -L"
+      print_s " https://github.com/ncopa/su-exec/archive/dddd1567b7c76365e1e0aac561287975020a8fad.zip"
+      print_s " -o su-exec.zip"
+    )" \
+    "${debug}" \
+    "${quiet}"
+  eval_command "unzip su-exec.zip" "${debug}" "${quiet}"
+  eval_command "cd su-exec-dddd1567b7c76365e1e0aac561287975020a8fad" "${debug}" "y"
+  eval_command "make" "${debug}" "${quiet}"
+  eval_command "mv su-exec /usr/local/bin" "${debug}" "y"
+  eval_command "cd .." "${debug}" "y"
+  eval_command "rm -rf su-exec-dddd1567b7c76365e1e0aac561287975020a8fad" "${debug}" "y"
+}
+
+curl_tini () {
+  # The -L (or --location) option follows redirects.
+  eval_command \
+    "$(
+      print_s "curl"
+      print_s " -L"
+      print_s " https://github.com/krallin/tini/releases/download/v0.18.0/tini-static"
+      print_s " -o /usr/local/bin/tini"
+    )" \
+    "${debug}" \
+    "${quiet}"
+  eval_command "chmod +x /usr/local/bin/tini" "${debug}" "y"
 }
 
 escape_double_quotation_marks() {
@@ -456,9 +366,22 @@ exit_with_error () {
 eval_command () {
   local command="$1"
   local debug="$2"
-  [ "${debug}" = "y" ] && print_ns "$(output_cyan)Executing$(output_reset) ${command} ... "
+  local quiet="$3"
+
+  if [ "${quiet}" = "y" ]; then
+    command="${command} > /dev/null 2>&1"
+  fi
+
+  ([ "${debug}" = "y" ] || [ -z "${quiet}" ]) \
+  && print_ns "$(output_cyan)Executing$(output_reset) ${command} ... "
+
+  [ ! "${quiet}" = "y" ] && printf "\n" ""
+
   eval "${command}" || return "$?"
-  [ "${debug}" = "y" ] && print_sn "$(output_cyan)DONE$(output_reset)"
+
+  ([ "${debug}" = "y" ] || [ -z "${quiet}" ]) \
+  && print_sn "$(output_cyan)DONE$(output_reset)"
+
   return 0
 }
 
@@ -1029,71 +952,14 @@ update_user_spec () {
 yum_install_su_exec () {
   local debug="$1"
   local quiet="$2"
-
-  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    print_nsn "$(output_cyan)Executing$(output_reset) yum install -y gcc make unzip ..."
-  fi
-  if [ -z "${quiet}" ]; then
-    yum install -y gcc make unzip
-  else
-    yum install -y gcc make unzip > /dev/null 2>&1
-  fi
-  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    print_sn "$(output_cyan)DONE$(output_reset)"
-  fi
-
-  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    print_nsn "$(output_cyan)Executing$(output_reset) curl -L https://github.com/ncopa/su-exec/archive/dddd1567b7c76365e1e0aac561287975020a8fad.zip -o su-exec.zip ..."
-  fi
-  if [ -z "${quiet}" ]; then
-    curl -L https://github.com/ncopa/su-exec/archive/dddd1567b7c76365e1e0aac561287975020a8fad.zip -o su-exec.zip
-  else
-    curl --silent -L https://github.com/ncopa/su-exec/archive/dddd1567b7c76365e1e0aac561287975020a8fad.zip -o su-exec.zip
-  fi
-  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    print_sn "$(output_cyan)DONE$(output_reset)"
-  fi
-
-  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    print_nsn "$(output_cyan)Installing$(output_reset) su-exec ..."
-  fi
-  if [ -z "${quiet}" ]; then
-    unzip su-exec.zip
-    cd su-exec-dddd1567b7c76365e1e0aac561287975020a8fad
-    make
-    mv su-exec /usr/local/bin
-    cd ..
-    rm -rf su-exec-dddd1567b7c76365e1e0aac561287975020a8fad
-  else
-    unzip su-exec.zip > /dev/null
-    cd su-exec-dddd1567b7c76365e1e0aac561287975020a8fad
-    make > /dev/null
-    mv su-exec /usr/local/bin
-    cd ..
-    rm -rf su-exec-dddd1567b7c76365e1e0aac561287975020a8fad
-  fi
-  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    print_sn "$(output_cyan)DONE$(output_reset)"
-  fi
+  eval_command "yum install -y gcc make unzip" "${debug}" "${quiet}"
+  curl_su_exec
 }
 
 yum_install_tini () {
   local debug="$1"
   local quiet="$2"
-
-  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    print_nsn "$(output_cyan)Executing$(output_reset) curl -L https://github.com/krallin/tini/releases/download/v0.18.0/tini-static -o /usr/local/bin/tini ..."
-  fi
-  if [ -z "${quiet}" ]; then
-    curl -L https://github.com/krallin/tini/releases/download/v0.18.0/tini-static -o /usr/local/bin/tini
-  else
-    curl --silent -L https://github.com/krallin/tini/releases/download/v0.18.0/tini-static -o /usr/local/bin/tini
-  fi
-  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    print_sn "$(output_cyan)DONE$(output_reset)"
-  fi
-
-  chmod +x /usr/local/bin/tini
+  curl_tini "${debug}" "${quiet}"
 }
 
 main "$@"

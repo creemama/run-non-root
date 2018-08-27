@@ -122,7 +122,7 @@ add_group() {
   fi
 
   if [ -z "${local_gid}" ] \
-  && [ ! -z "${uid}" ] \
+  && [ -n "${uid}" ] \
   && ! does_group_exist "${uid}"; then
     local_gid="${uid}"
   fi
@@ -135,14 +135,14 @@ add_group() {
   if ! eval_command \
     "$(
       print_s "groupadd"
-      if [ ! -z "${local_gid}" ]; then
+      if [ -n "${local_gid}" ]; then
         print_s " --gid \"${local_gid}\""
       fi
       print_s " \"${local_group_name}\""
     )" \
     "${debug}"; then
     local gid_part=""
-    if [ ! -z "${local_gid}" ]; then
+    if [ -n "${local_gid}" ]; then
       gid_part=" with ID ( ${local_gid} )"
     fi
     exit_with_error 100 \
@@ -183,14 +183,14 @@ add_user() {
       print_s " --gid \"${gid}\""
       print_s " --no-log-init"
       print_s " --shell /bin/sh"
-      if [ ! -z "${uid}" ]; then
+      if [ -n "${uid}" ]; then
         print_s " --uid \"${uid}\""
       fi
       print_s " \"${username}\""
     )" \
     "${debug}"; then
     local uid_part=""
-    if [ ! -z "${uid}" ]; then
+    if [ -n "${uid}" ]; then
       uid_part=" with ID ( ${uid} )"
     fi
     exit_with_error 200 "We could not add the user ( ${username} )${uid_part}."
@@ -517,7 +517,7 @@ main () {
   )"
   local getopt_warnings="$(cat "${tmpfile}")"
   rm "${tmpfile}"
-  if [ ! -z "${getopt_warnings}" ]; then
+  if [ -n "${getopt_warnings}" ]; then
     exit_with_error 1 \
       "$(
         print_s "There was an error parsing the given options. "
@@ -593,7 +593,7 @@ main () {
   # and not
   #   echo foo bar
 
-  if [ ! -z "${1:-}" ]; then
+  if [ -n "${1:-}" ]; then
     command="$(stringify_arguments "$@")"
   fi
 
@@ -814,7 +814,7 @@ run_as_non_root_user () {
     create_group \
     "${username}"
 
-  if [ ! -z "${create_group}" ]; then
+  if [ -n "${create_group}" ]; then
     add_group \
       "${debug}" \
       "${gid}" \
@@ -826,7 +826,7 @@ run_as_non_root_user () {
       "${username}"
   fi
 
-  if [ ! -z "${create_user}" ]; then
+  if [ -n "${create_user}" ]; then
     add_user \
       "${debug}" \
       "${gid}" \
@@ -939,7 +939,7 @@ update_group_spec () {
 
   if [ "${gid_exists}" -eq 0 ]; then
     local group_name_of_gid="$(getent group "${local_gid}" | awk -F ":" '{print $1}')"
-    if [ -z "${quiet}" ] && [ ! -z "${local_group_name}" ] && [ "${local_group_name}" != "${group_name_of_gid}" ]; then
+    if [ -z "${quiet}" ] && [ -n "${local_group_name}" ] && [ "${local_group_name}" != "${group_name_of_gid}" ]; then
       print_warning "We have ignored the group name you specified, ${local_group_name}. The GID you specified, ${local_gid}, exists with the group name ${group_name_of_gid}."
     fi
     local_group_name="${group_name_of_gid}"
@@ -947,7 +947,7 @@ update_group_spec () {
     if [ -z "${local_gid}" ]; then
       local gid_of_group_name="$(getent group "${local_group_name}" | awk -F ":" '{print $3}')"
       if [ -z "${quiet}" ] \
-      && [ ! -z "${local_gid}" ] \
+      && [ -n "${local_gid}" ] \
       && [ "${local_gid}" != "${gid_of_group_name}" ]; then
         print_warning "We have ignored the GID you specified, ${local_gid}. The group name you specified, ${local_group_name}, exists with the GID ${gid_of_group_name}."
       fi
@@ -988,7 +988,7 @@ update_user_spec () {
     # Using id with a UID does not work in Alpine Linux.
     local username_of_uid="$(getent passwd "${local_uid}" | awk -F ":" '{print $1}')"
     if [ -z "${quiet}" ] \
-    && [ ! -z "${local_username}" ] \
+    && [ -n "${local_username}" ] \
     && [ "${local_username}" != "${username_of_uid}" ]; then
       print_warning "We have ignored the username you specified, ${local_username}. The UID you specified, ${local_uid}, exists with the username ${username_of_uid}."
     fi
@@ -997,7 +997,7 @@ update_user_spec () {
     if [ -z "${local_uid}" ]; then
       local uid_of_username="$(id -u "${local_username}")"
       if [ -z "${quiet}" ] \
-      && [ ! -z "${local_uid}" ] \
+      && [ -n "${local_uid}" ] \
       && [ "${local_uid}" != "${uid_of_username}" ]; then
         print_warning "We have ignored the UID you specified, ${local_uid}. The username you specified, ${local_username}, exists with the UID ${uid_of_username}."
       fi

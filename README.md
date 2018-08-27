@@ -20,7 +20,7 @@ Run Linux commands as a non-root user, creating a non-root user if necessary.
 
 Options:
   -d, --debug             Output debug information; using --quiet does not
-                          silence debug output.
+                          silence debug output. Double up (-dd) for more output.
   -f, --group GROUP_NAME  The group name to use when executing the command; the
                           default group name is USERNAME or nonroot; this
                           option is ignored if we are already running as a

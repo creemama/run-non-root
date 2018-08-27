@@ -12,7 +12,7 @@ Run Linux commands as a non-root user, creating a non-root user if necessary.
 
 Options:
   -d, --debug             Output debug information; using --quiet does not
-                          silence debug output.
+                          silence debug output. Double up (-dd) for more output.
   -f, --group GROUP_NAME  The group name to use when executing the command; the
                           default group name is USERNAME or nonroot; this
                           option is ignored if we are already running as a
@@ -499,14 +499,14 @@ local_tput () {
 }
 
 main () {
-  local command="${RUN_NON_ROOT_COMMAND}"
+  local command="${RUN_NON_ROOT_COMMAND:-}"
   local debug=
-  local gid="${RUN_NON_ROOT_GID}"
-  local group_name="${RUN_NON_ROOT_GROUP}"
+  local gid="${RUN_NON_ROOT_GID:-}"
+  local group_name="${RUN_NON_ROOT_GROUP:-}"
   local init=
   local quiet=
-  local uid="${RUN_NON_ROOT_UID}"
-  local username="${RUN_NON_ROOT_USER}"
+  local uid="${RUN_NON_ROOT_UID:-}"
+  local username="${RUN_NON_ROOT_USER:-}"
 
   # "How do I parse command line arguments in Bash?"
   # https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash
@@ -541,6 +541,11 @@ main () {
   while true; do
     case "$1" in
       -d|--debug)
+        if [ "${debug}" = "y" ]; then
+          # "Showing the running command in a bash script with "set -x""
+          # https://www.stefaanlippens.net/set-x/
+          set -o xtrace
+        fi
         debug="y"
         shift
         ;;

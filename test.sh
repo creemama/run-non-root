@@ -1037,7 +1037,7 @@ test_options () {
     print_s " -it"
     print_s " --rm"
     print_s " --volume $(pwd)/run-non-root.sh:/usr/local/bin/run-non-root:ro"
-    print_s " creemama/run-non-root:1.0.0-${os}"
+    print_s " creemama/run-non-root:1.1.0-${os}"
     print_s " ${options} "
     print_s " ${command}"
   )"

@@ -125,6 +125,9 @@ test () {
   test_image "debian:9.5" "sh -c \"apt-get update && apt-get install -y procps && run-non-root ps aux\"" "debian"
   test_image "fedora:28" "sh -c \"dnf install -y procps-ng && run-non-root ps aux\"" "fedora"
   test_image "ubuntu:18.04" "run-non-root -- ps aux" "ubuntu"
+
+  # Test check_for_getopt since CentOS 6 does not have getopt by default.
+  test_bare_image "centos:6" "run-non-root -- ps aux"
 }
 
 test_bare_image () {

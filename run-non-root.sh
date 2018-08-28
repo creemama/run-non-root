@@ -244,9 +244,11 @@ apt_get_install_tini () {
 }
 
 check_for_getopt () {
+  local debug="$1"
+  local quiet="$2"
   if ! test_command_exists "getopt"; then
     if test_command_exists "yum"; then
-      yum install -y util-linux-ng > /dev/null 2>&1
+      yum_install_getopt "${debug}" "${quiet}"
     fi
   fi
 }
@@ -411,7 +413,9 @@ main () {
   # "How create a temporary file in shell script?"
   # https://unix.stackexchange.com/questions/181937/how-create-a-temporary-file-in-shell-script
 
-  check_for_getopt
+  # debug and quiet are not available yet.
+  check_for_getopt "y" "y"
+
   tmpfile=$(mktemp)
   local parsed_options="$(
     getopt \
@@ -947,6 +951,12 @@ update_user_spec () {
   eval $return_uid="'${local_uid}'"
   eval $return_username="'${local_username}'"
   eval $return_create_user="'${local_create_user}'"
+}
+
+yum_install_getopt () {
+  local debug="$1"
+  local quiet="$2"
+  eval_command "yum install -y util-linux-ng" "${debug}" "${quiet}"
 }
 
 yum_install_su_exec () {

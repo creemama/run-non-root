@@ -367,14 +367,14 @@ eval_command () {
     command="${command} > /dev/null 2>&1"
   fi
 
-  ([ "${debug}" = "y" ] || [ -z "${quiet}" ]) \
+  ([ "${debug}" = "y" ] || [ ! "${quiet}" = "y" ]) \
   && print_ns "$(output_cyan)Executing$(output_reset) ${command} ... "
 
   [ ! "${quiet}" = "y" ] && printf "\n" ""
 
   eval "${command}" || return "$?"
 
-  ([ "${debug}" = "y" ] || [ -z "${quiet}" ]) \
+  ([ "${debug}" = "y" ] || [ ! "${quiet}" = "y" ]) \
   && print_sn "$(output_cyan)DONE$(output_reset)"
 
   return 0
@@ -636,7 +636,7 @@ run_as_current_user () {
     tini_part="tini -- "
   fi
 
-  if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
+  if [ "${debug}" = "y" ] || [ ! "${quiet}" = "y" ]; then
     print_warning \
       "$(
         print_s "You are already running as a non-root user. "
@@ -878,7 +878,7 @@ update_group_spec () {
     local group_name_of_gid="$(
       getent group "${local_gid}" | awk -F ":" '{print $1}'
     )"
-    if [ -z "${quiet}" ] \
+    if [ ! "${quiet}" = "y" ] \
     && [ -n "${local_group_name}" ] \
     && [ "${local_group_name}" != "${group_name_of_gid}" ]; then
       print_warning \
@@ -897,7 +897,7 @@ update_group_spec () {
       local gid_of_group_name="$(
         getent group "${local_group_name}" | awk -F ":" '{print $3}'
       )"
-      if [ -z "${quiet}" ] \
+      if [ ! "${quiet}" = "y" ] \
       && [ -n "${local_gid}" ] \
       && [ "${local_gid}" != "${gid_of_group_name}" ]; then
         print_warning \
@@ -950,7 +950,7 @@ update_user_spec () {
     local username_of_uid="$(
       getent passwd "${local_uid}" | awk -F ":" '{print $1}'
     )"
-    if [ -z "${quiet}" ] \
+    if [ ! "${quiet}" = "y" ] \
     && [ -n "${local_username}" ] \
     && [ "${local_username}" != "${username_of_uid}" ]; then
       print_warning \
@@ -967,7 +967,7 @@ update_user_spec () {
 
     if [ -z "${local_uid}" ]; then
       local uid_of_username="$(id -u "${local_username}")"
-      if [ -z "${quiet}" ] \
+      if [ ! "${quiet}" = "y" ] \
       && [ -n "${local_uid}" ] \
       && [ "${local_uid}" != "${uid_of_username}" ]; then
         print_warning \

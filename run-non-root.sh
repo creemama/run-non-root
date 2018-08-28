@@ -429,9 +429,9 @@ main () {
         print_s "You may need to (a) remove invalid options or "
         print_s "(b) use -- to separate run-non-root's options "
         print_s "from the command. "
-        print_s "Run run-non-root --help for more info."
-        printf "\n" ""
-      )${getopt_warnings}"
+        print_s "Run run-non-root --help for more info. "
+        print_s "(From getopt: ${getopt_warnings})"
+      )"
   fi
 
   eval set -- "${parsed_options}"

@@ -897,17 +897,6 @@ update_group_spec () {
       local gid_of_group_name="$(
         getent group "${local_group_name}" | awk -F ":" '{print $3}'
       )"
-      if [ ! "${quiet}" = "y" ] \
-      && [ -n "${local_gid}" ] \
-      && [ "${local_gid}" != "${gid_of_group_name}" ]; then
-        print_warning \
-          "$(
-            print_s "We have ignored the GID you specified, "
-            print_s "( ${local_gid} ). The group name you specified, "
-            print_s "( ${local_group_name} ), exists with the GID "
-            print_s "( ${gid_of_group_name} )."
-          )"
-      fi
       local_gid="${gid_of_group_name}"
     else
       local_group_name=""
@@ -967,17 +956,6 @@ update_user_spec () {
 
     if [ -z "${local_uid}" ]; then
       local uid_of_username="$(id -u "${local_username}")"
-      if [ ! "${quiet}" = "y" ] \
-      && [ -n "${local_uid}" ] \
-      && [ "${local_uid}" != "${uid_of_username}" ]; then
-        print_warning \
-          "$(
-            print_s "We have ignored the UID you specified, "
-            print_s "( ${local_uid} ). The username you specified, "
-            print_s "( ${local_username} ), exists with the UID "
-            print_s "( ${uid_of_username} )."
-          )"
-      fi
       local_uid="${uid_of_username}"
     else
       local_username="nonroot"

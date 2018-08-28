@@ -143,7 +143,7 @@ test_bare_image () {
   print_sn "$(output_green)Testing $(output_cyan)${docker_command}$(output_reset)$(output_green) ... $(output_reset)"
   eval "${docker_command}"
 
-  command="$(print_s "${command}" | sed -e "s/\run-non-root/run-non-root -i/g")"
+  command="$(print_s "${command}" | sed -e "s/run-non-root/run-non-root -i/g")"
   docker_command="$(
     print_s "docker run"
     print_s " -it"

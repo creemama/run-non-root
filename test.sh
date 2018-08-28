@@ -78,10 +78,6 @@ output_reset () {
   local_tput sgr0
 }
 
-print_ns () {
-  printf "\n%s" "${1}"
-}
-
 print_nsn () {
   printf "\n%s\n" "${1}"
 }
@@ -811,7 +807,7 @@ test_image () {
     "--quiet --gid \"-1\"" \
     "${os}"
   test_options \
-    "groupadd: 'foo bar' is not a valid group name${before_error}ERROR (100):${after_error} We could not add the group ( foo bar ).${reset}" \
+    "${before_error}ERROR (100):${after_error} We could not add the group ( foo bar ).${reset}" \
     "--quiet --group \"foo bar\"" \
     "${os}"
   test_options \
@@ -823,19 +819,19 @@ test_image () {
     "--quiet --uid \"-1\"" \
     "${os}"
   test_options \
-    "groupadd: 'foo bar' is not a valid group name${before_error}ERROR (100):${after_error} We could not add the group ( foo bar ).${reset}" \
+    "${before_error}ERROR (100):${after_error} We could not add the group ( foo bar ).${reset}" \
     "--quiet --user \"foo bar\"" \
     "${os}"
   test_options \
-    "groupadd: 'foo bar' is not a valid group name${before_error}ERROR (100):${after_error} We could not add the group ( foo bar ) with ID ( 5000 ).${reset}" \
+    "${before_error}ERROR (100):${after_error} We could not add the group ( foo bar ) with ID ( 5000 ).${reset}" \
     "--quiet --gid 5000 --group \"foo bar\"" \
     "${os}"
   test_options \
-    "useradd: invalid user name 'foo bar'${before_error}ERROR (200):${after_error} We could not add the user ( foo bar ).${reset}" \
+    "${before_error}ERROR (200):${after_error} We could not add the user ( foo bar ).${reset}" \
     "--quiet --group \"root\" --user \"foo bar\"" \
     "${os}"
   test_options \
-    "useradd: invalid user name 'foo bar'${before_error}ERROR (200):${after_error} We could not add the user ( foo bar ) with ID ( 5000 ).${reset}" \
+    "${before_error}ERROR (200):${after_error} We could not add the user ( foo bar ) with ID ( 5000 ).${reset}" \
     "--quiet --group \"root\" --uid 5000 --user \"foo bar\"" \
     "${os}"
   test_options \
@@ -849,7 +845,7 @@ test_image () {
     "${os}" \
     "-e RUN_NON_ROOT_GID=\"-1\""
   test_options \
-    "groupadd: 'foo bar' is not a valid group name${before_error}ERROR (100):${after_error} We could not add the group ( foo bar ).${reset}" \
+    "${before_error}ERROR (100):${after_error} We could not add the group ( foo bar ).${reset}" \
     "-q" \
     "${os}" \
     "-e RUN_NON_ROOT_GROUP=\"foo bar\""
@@ -864,22 +860,22 @@ test_image () {
     "${os}" \
     "-e RUN_NON_ROOT_UID=\"-1\""
   test_options \
-    "groupadd: 'foo bar' is not a valid group name${before_error}ERROR (100):${after_error} We could not add the group ( foo bar ).${reset}" \
+    "${before_error}ERROR (100):${after_error} We could not add the group ( foo bar ).${reset}" \
     "-q" \
     "${os}" \
     "-e RUN_NON_ROOT_USER=\"foo bar\""
   test_options \
-    "groupadd: 'foo bar' is not a valid group name${before_error}ERROR (100):${after_error} We could not add the group ( foo bar ) with ID ( 5000 ).${reset}" \
+    "${before_error}ERROR (100):${after_error} We could not add the group ( foo bar ) with ID ( 5000 ).${reset}" \
     "--quiet" \
     "${os}" \
     "-e RUN_NON_ROOT_GID=5000 -e RUN_NON_ROOT_GROUP=\"foo bar\""
   test_options \
-    "useradd: invalid user name 'foo bar'${before_error}ERROR (200):${after_error} We could not add the user ( foo bar ).${reset}" \
+    "${before_error}ERROR (200):${after_error} We could not add the user ( foo bar ).${reset}" \
     "--quiet" \
     "${os}" \
     "-e RUN_NON_ROOT_GROUP=\"root\" -e RUN_NON_ROOT_USER=\"foo bar\""
   test_options \
-    "useradd: invalid user name 'foo bar'${before_error}ERROR (200):${after_error} We could not add the user ( foo bar ) with ID ( 5000 ).${reset}" \
+    "${before_error}ERROR (200):${after_error} We could not add the user ( foo bar ) with ID ( 5000 ).${reset}" \
     "--quiet" \
     "${os}" \
     "-e RUN_NON_ROOT_GROUP=\"root\" -e RUN_NON_ROOT_UID=5000 -e RUN_NON_ROOT_USER=\"foo bar\""

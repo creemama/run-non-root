@@ -383,7 +383,10 @@ eval_command () {
 exit_with_error () {
   local exit_code="$1"
   local message="$2"
-  (>&2 print_sn "$(output_red)$(output_bold)ERROR (${exit_code}):$(output_reset)$(output_red) ${message}$(output_reset)")
+  (>&2
+    print_s "$(output_red)$(output_bold)ERROR (${exit_code}):$(output_reset)"
+    print_sn "$(output_red) ${message}$(output_reset)"
+  )
   exit "${exit_code}"
 }
 
@@ -604,12 +607,8 @@ print_ns () {
   printf "\n%s" "${1}"
 }
 
-print_nsn () {
-  printf "\n%s\n" "${1}"
-}
-
-print_nsnn () {
-  printf "\n%s\n\n" "${1}"
+print_snn () {
+  printf "%s\n\n" "${1}"
 }
 
 print_s () {
@@ -621,7 +620,8 @@ print_sn () {
 }
 
 print_warning () {
-  print_nsn "$(output_yellow)$(output_bold)WARNING:$(output_reset)$(output_yellow) $1$(output_reset)"
+  print_ns "$(output_yellow)$(output_bold)WARNING:$(output_reset)"
+  print_sn "$(output_yellow) $1$(output_reset)"
 }
 
 run_as_current_user () {
@@ -637,16 +637,22 @@ run_as_current_user () {
   fi
 
   if [ "${debug}" = "y" ] || [ -z "${quiet}" ]; then
-    print_warning "You are already running as a non-root user. We have ignored all group and user options."
-    print_nsnn "$(output_green)Running ( ${tini_part}$(output_bold)${command}$(output_reset)$(output_green) ) as $(id) ...$(output_reset)"
+    print_warning \
+      "$(
+        print_s "You are already running as a non-root user. "
+        print_s "We have ignored all group and user options."
+      )"
+    print_ns "$(output_green)Running ( "
+    print_s "exec ${tini_part}$(output_bold)${command}$(output_reset)"
+    print_snn "$(output_green) ) as $(id) ...$(output_reset)"
   fi
   # If we had not used eval, then commands like
-  # sh -c "ls -al" or sh -c "echo 'foo bar'"
+  #   sh -c "ls -al" or sh -c "echo 'foo bar'"
   # would have errored with
-  # /usr/local/bin/run-non-root: line 1: exec sh -c "ls -al": not found
-  # 'ls: line 1: syntax error: unterminated quoted string
+  #   /usr/local/bin/run-non-root: line 1: exec sh -c "ls -al": not found
+  #   'ls: line 1: syntax error: unterminated quoted string
   # or
-  # 'foo: line 1: syntax error: unterminated quoted string
+  #   'foo: line 1: syntax error: unterminated quoted string
   eval "exec ${tini_part}${command}"
 }
 
@@ -752,15 +758,18 @@ run_as_non_root_user () {
 
   check_for_su_exec "${debug}" "${quiet}"
   if [ "${debug}" = "y" ] || [ -z ${quiet} ]; then
-    print_nsnn "$(output_green)Running ( su-exec ${username}:${gid} ${tini_part}$(output_bold)${command}$(output_reset)$(output_green) ) as $(id ${username}) ...$(output_reset)"
+    print_ns "$(output_green)Running ( "
+    print_s "exec su-exec ${username}:${gid} "
+    print_s "${tini_part}$(output_bold)${command}$(output_reset)"
+    print_snn "$(output_green) ) as $(id ${username}) ...$(output_reset)"
   fi
   # If we had not used eval, then commands like
-  # sh -c "ls -al" or sh -c "echo 'foo bar'"
+  #   sh -c "ls -al" or sh -c "echo 'foo bar'"
   # would have errored with
-  # /usr/local/bin/run-non-root: line 1: exec sh -c "ls -al": not found
-  # 'ls: line 1: syntax error: unterminated quoted string
+  #   /usr/local/bin/run-non-root: line 1: exec sh -c "ls -al": not found
+  #   'ls: line 1: syntax error: unterminated quoted string
   # or
-  # 'foo: line 1: syntax error: unterminated quoted string
+  #   'foo: line 1: syntax error: unterminated quoted string
   eval "exec su-exec ${username}:${gid} ${tini_part}${command}"
 }
 
@@ -865,25 +874,48 @@ update_group_spec () {
   local local_create_group=""
 
   if [ "${gid_exists}" -eq 0 ]; then
-    local group_name_of_gid="$(getent group "${local_gid}" | awk -F ":" '{print $1}')"
-    if [ -z "${quiet}" ] && [ -n "${local_group_name}" ] && [ "${local_group_name}" != "${group_name_of_gid}" ]; then
-      print_warning "We have ignored the group name you specified, ${local_group_name}. The GID you specified, ${local_gid}, exists with the group name ${group_name_of_gid}."
+
+    local group_name_of_gid="$(
+      getent group "${local_gid}" | awk -F ":" '{print $1}'
+    )"
+    if [ -z "${quiet}" ] \
+    && [ -n "${local_group_name}" ] \
+    && [ "${local_group_name}" != "${group_name_of_gid}" ]; then
+      print_warning \
+        "$(
+          print_s "We have ignored the group name you specified, "
+          print_s "( ${local_group_name} ). The GID you specified, "
+          print_s "( ${local_gid} ), exists with the group name "
+          print_s "( ${group_name_of_gid} )."
+        )"
     fi
     local_group_name="${group_name_of_gid}"
+
   elif [ "${group_name_exists}" -eq 0 ]; then
+
     if [ -z "${local_gid}" ]; then
-      local gid_of_group_name="$(getent group "${local_group_name}" | awk -F ":" '{print $3}')"
+      local gid_of_group_name="$(
+        getent group "${local_group_name}" | awk -F ":" '{print $3}'
+      )"
       if [ -z "${quiet}" ] \
       && [ -n "${local_gid}" ] \
       && [ "${local_gid}" != "${gid_of_group_name}" ]; then
-        print_warning "We have ignored the GID you specified, ${local_gid}. The group name you specified, ${local_group_name}, exists with the GID ${gid_of_group_name}."
+        print_warning \
+          "$(
+            print_s "We have ignored the GID you specified, "
+            print_s "( ${local_gid} ). The group name you specified, "
+            print_s "( ${local_group_name} ), exists with the GID "
+            print_s "( ${gid_of_group_name} )."
+          )"
       fi
       local_gid="${gid_of_group_name}"
     else
       local_group_name=""
       local_create_group=0
     fi
+
   else
+
     if [ -z "${create_user}" ] \
     && [ -z "${local_gid}" ] \
     && [ -z "${local_group_name}" ]; then
@@ -892,6 +924,7 @@ update_group_spec () {
     else
       local_create_group=0
     fi
+
   fi
 
   eval $return_gid="'${local_gid}'"
@@ -912,40 +945,59 @@ update_user_spec () {
   local local_create_user=""
 
   if [ "${uid_exists}" -eq 0 ]; then
+
     # Using id with a UID does not work in Alpine Linux.
-    local username_of_uid="$(getent passwd "${local_uid}" | awk -F ":" '{print $1}')"
+    local username_of_uid="$(
+      getent passwd "${local_uid}" | awk -F ":" '{print $1}'
+    )"
     if [ -z "${quiet}" ] \
     && [ -n "${local_username}" ] \
     && [ "${local_username}" != "${username_of_uid}" ]; then
-      print_warning "We have ignored the username you specified, ${local_username}. The UID you specified, ${local_uid}, exists with the username ${username_of_uid}."
+      print_warning \
+        "$(
+          print_s "We have ignored the username you specified, "
+          print_s "( ${local_username} ). The UID you specified, "
+          print_s "( ${local_uid} ), exists with the username "
+          print_s "( ${username_of_uid} )."
+        )"
     fi
     local_username="${username_of_uid}"
+
   elif [ "${username_exists}" -eq 0 ]; then
+
     if [ -z "${local_uid}" ]; then
       local uid_of_username="$(id -u "${local_username}")"
       if [ -z "${quiet}" ] \
       && [ -n "${local_uid}" ] \
       && [ "${local_uid}" != "${uid_of_username}" ]; then
-        print_warning "We have ignored the UID you specified, ${local_uid}. The username you specified, ${local_username}, exists with the UID ${uid_of_username}."
+        print_warning \
+          "$(
+            print_s "We have ignored the UID you specified, "
+            print_s "( ${local_uid} ). The username you specified, "
+            print_s "( ${local_username} ), exists with the UID "
+            print_s "( ${uid_of_username} )."
+          )"
       fi
       local_uid="${uid_of_username}"
     else
       local_username="nonroot"
       local_create_user=0
     fi
+
   else
+
     if [ -z "${local_username}" ]; then
       local_username="nonroot"
     fi
     local_create_user=0
+
   fi
 
   if [ "${local_create_user}" = "0" ] \
-  && [ "${local_username}" = "nonroot" ]; then
-    if test_user_exists "nonroot"; then
-      local_uid="$(id -u nonroot)"
-      local_create_user=""
-    fi
+  && [ "${local_username}" = "nonroot" ] \
+  && test_user_exists "nonroot"; then
+    local_uid="$(id -u nonroot)"
+    local_create_user=""
   fi
 
   eval $return_uid="'${local_uid}'"

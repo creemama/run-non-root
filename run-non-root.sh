@@ -19,7 +19,7 @@ if [ -n "${BASH_VERSION:-}" ]; then
   IFS=$'\n\t'
 fi
 
-RUN_NON_ROOT_VERSION=1.1.0
+RUN_NON_ROOT_VERSION=1.2.0
 
 print_help () {
   cat << EOF

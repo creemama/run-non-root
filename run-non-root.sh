@@ -97,7 +97,7 @@ Version: ${RUN_NON_ROOT_VERSION}
 EOF
 }
 
-add_group() {
+add_group () {
   local debug="$1"
   local local_gid="$2"
   local local_group_name="$3"
@@ -158,7 +158,7 @@ add_group() {
   eval $return_group_name="'${local_group_name}'"
 }
 
-add_user() {
+add_user () {
   local debug="$1"
   local gid="$2"
   local quiet="$3"
@@ -286,7 +286,7 @@ check_for_su_exec () {
   fi
 }
 
-check_for_tini() {
+check_for_tini () {
   local debug="$1"
   local quiet="$2"
   if ! test_command_exists "tini"; then
@@ -354,15 +354,8 @@ curl_tini () {
   eval_command "chmod +x /usr/local/bin/tini" "${debug}" "y"
 }
 
-escape_double_quotation_marks() {
+escape_double_quotation_marks () {
   print_s "$1" | sed "s/\"/\\\\\"/g"
-}
-
-exit_with_error () {
-  local exit_code="$1"
-  local message="$2"
-  (>&2 print_sn "$(output_red)$(output_bold)ERROR (${exit_code}):$(output_reset)$(output_red) ${message}$(output_reset)")
-  exit "${exit_code}"
 }
 
 eval_command () {
@@ -385,6 +378,13 @@ eval_command () {
   && print_sn "$(output_cyan)DONE$(output_reset)"
 
   return 0
+}
+
+exit_with_error () {
+  local exit_code="$1"
+  local message="$2"
+  (>&2 print_sn "$(output_red)$(output_bold)ERROR (${exit_code}):$(output_reset)$(output_red) ${message}$(output_reset)")
+  exit "${exit_code}"
 }
 
 local_tput () {
@@ -822,6 +822,15 @@ test_contains_double_quotation_mark () {
   print_s "$1" | grep "\"" > /dev/null
 }
 
+test_group_exists () {
+  local gid_or_group_name="$1"
+  if [ -z "${gid_or_group_name}" ]; then
+    return 1
+  else
+    getent group "${gid_or_group_name}" > /dev/null 2>&1
+  fi
+}
+
 test_is_integer () {
   [ "$1" -eq "$1" ] 2> /dev/null
 }
@@ -830,15 +839,6 @@ test_is_tty () {
   # "No value for $TERM and no -T specified"
   # https://askubuntu.com/questions/591937/no-value-for-term-and-no-t-specified
   tty -s > /dev/null 2>&1
-}
-
-test_group_exists () {
-  local gid_or_group_name="$1"
-  if [ -z "${gid_or_group_name}" ]; then
-    return 1
-  else
-    getent group "${gid_or_group_name}" > /dev/null 2>&1
-  fi
 }
 
 test_user_exists () {

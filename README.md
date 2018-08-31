@@ -36,6 +36,13 @@ Options:
   -i, --init              Run an init (the tini command) that forwards signals
                           and reaps processes; this matches the docker run
                           option --init.
+  -p, --path              Colon-separated list of directories to run
+                          "chown -R USERNAME:GID" on before executing the
+                          command; you can use this option multiple times
+                          instead of using a colon-separated list; if a
+                          directory does not exist, run-non-root attempts to
+                          create it; run-non-root ignores this option if you
+                          are already running as a non-root user.
   -q, --quiet             Do not output "Running ( COMMAND ) as USER_INFO ..."
                           or warnings; this option does not silence --debug
                           output.

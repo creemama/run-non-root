@@ -47,6 +47,13 @@ Options:
   -i, --init              Run an init (the tini command) that forwards signals
                           and reaps processes; this matches the docker run
                           option --init.
+  -p, --path              Colon-separated list of directories to run
+                          "chown -R USERNAME:GID" on before executing the
+                          command; you can use this option multiple times
+                          instead of using a colon-separated list; if a
+                          directory does not exist, run-non-root attempts to
+                          create it; run-non-root ignores this option if you
+                          are already running as a non-root user.
   -q, --quiet             Do not output "Running ( COMMAND ) as USER_INFO ..."
                           or warnings; this option does not silence --debug
                           output.
@@ -406,6 +413,7 @@ main () {
   local gid="${RUN_NON_ROOT_GID:-}"
   local group_name="${RUN_NON_ROOT_GROUP:-}"
   local init=""
+  local path=""
   local quiet=""
   local uid="${RUN_NON_ROOT_UID:-}"
   local username="${RUN_NON_ROOT_USER:-}"
@@ -422,8 +430,8 @@ main () {
   tmpfile=$(mktemp)
   local parsed_options="$(
     getopt \
-      --options=df:g:hiqt:u:v \
-      --longoptions=debug,gid:,group:,help,init,quiet,uid:,user:,version \
+      --options=df:g:hip:qt:u:v \
+      --longoptions=debug,gid:,group:,help,init,path:,quiet,uid:,user:,version \
       --name "$0" \
       -- "$@" 2> "${tmpfile}"
   )"
@@ -468,6 +476,14 @@ main () {
       -i|--init)
         init="y"
         shift
+        ;;
+      -p|--path)
+        if [ -z "${path}" ]; then
+          path="$2"
+        else
+          path="${path}:$2"
+        fi
+        shift 2
         ;;
       -q|--quiet)
         quiet="y"
@@ -518,6 +534,7 @@ $(output_cyan)Command Options:$(output_reset)
   $(output_cyan)gid=$(output_reset)${gid}
   $(output_cyan)group_name=$(output_reset)${group_name}
   $(output_cyan)init=$(output_reset)${init}
+  $(output_cyan)path=$(output_reset)${path}
   $(output_cyan)quiet=$(output_reset)${quiet}
   $(output_cyan)uid=$(output_reset)${uid}
   $(output_cyan)username=$(output_reset)${username}
@@ -574,6 +591,7 @@ EOF
     "${gid}" \
     "${group_name}" \
     "${init}" \
+    "${path}" \
     "${quiet}" \
     "${uid}" \
     "${username}"
@@ -676,9 +694,10 @@ run_as_non_root_user () {
   local gid="$3"
   local group_name="$4"
   local init="$5"
-  local quiet="$6"
-  local uid="$7"
-  local username="$8"
+  local path="$6"
+  local quiet="$7"
+  local uid="$8"
+  local username="$9"
 
   local gid_exists=1
   if test_group_exists "${gid}"; then
@@ -750,6 +769,15 @@ run_as_non_root_user () {
       "${username}"
   fi
 
+  if [ -n "${path}" ]; then
+    update_directory_permissions \
+      "${debug}" \
+      "${gid}" \
+      "${path}" \
+      "${quiet}" \
+      "${username}"
+  fi
+
   local tini_part=""
   if [ "${init}" = "y" ]; then
     check_for_tini "${debug}" "${quiet}"
@@ -779,9 +807,10 @@ run_non_root () {
   local gid="$3"
   local group_name="$4"
   local init="$5"
-  local quiet="$6"
-  local uid="$7"
-  local username="$8"
+  local path="$6"
+  local quiet="$7"
+  local uid="$8"
+  local username="$9"
 
   if [ "$(whoami)" = "root" ]; then
     run_as_non_root_user \
@@ -790,6 +819,7 @@ run_non_root () {
       "${gid}" \
       "${group_name}" \
       "${init}" \
+      "${path}" \
       "${quiet}" \
       "${uid}" \
       "${username}"
@@ -857,6 +887,63 @@ test_user_exists () {
   else
     getent passwd "${uid_or_username}" > /dev/null 2>&1
   fi
+}
+
+update_directory_permissions() {
+  local debug="$1"
+  local gid="$2"
+  local path="$3"
+  local quiet="$4"
+  local username="$5"
+
+  # "Does `dash` support `bash` style arrays?"
+  # https://stackoverflow.com/questions/14594033/does-dash-support-bash-style-arrays
+  local old_IFS="$IFS"
+  IFS=":"
+  set -- ${path}
+  IFS="${old_IFS}"
+
+  for arg; do
+
+    # Since arg could be anything, we do not call eval_command here.
+
+    if [ ! -d "${arg}" ]; then
+      ([ "${debug}" = "y" ] || [ ! "${quiet}" = "y" ]) \
+      && print_ns "$(output_cyan)Executing$(output_reset) " \
+      && print_s "mkdir -p \"${arg}\" ... "
+
+      if ! mkdir -p "${arg}"; then
+        exit_with_error 300 "We could not create the directory ( ${arg} )."
+      fi
+
+      ([ "${debug}" = "y" ] || [ ! "${quiet}" = "y" ]) \
+      && print_sn "$(output_cyan)DONE$(output_reset)"
+    fi
+
+    local chown_v_option=""
+    if [ "${debug}" = "y" ] && [ ! "${quiet}" = "y" ]; then
+      chown_v_option="-v"
+    fi
+
+    ([ "${debug}" = "y" ] || [ ! "${quiet}" = "y" ]) \
+    && print_ns "$(output_cyan)Executing$(output_reset) " \
+    && print_s "chown -R ${chown_v_option} \"${username}:${gid}\" \"${arg}\"" \
+    && print_s " ... "
+
+    [ ! "${quiet}" = "y" ] && printf "\n" ""
+
+    if ! chown -R ${chown_v_option} "${username}:${gid}" "${arg}" \
+    && [ ! "${quiet}" = "y" ]; then
+      print_warning "Something went wrong changing the ownership of ( ${arg} )."
+      true
+    fi
+
+    ([ "${debug}" = "y" ] || [ ! "${quiet}" = "y" ]) \
+    && print_sn "$(output_cyan)DONE$(output_reset)"
+
+  done
+
+  return 0
 }
 
 update_group_spec () {

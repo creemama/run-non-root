@@ -625,6 +625,65 @@ test_image () {
     "${os}" \
     "-e RUN_NON_ROOT_GROUP=mnop -e RUN_NON_ROOT_GID=3456 -e RUN_NON_ROOT_USER=ijkl -e RUN_NON_ROOT_UID=9012"
 
+  print_test_header "Test the --path option."
+
+  # Test one path.
+  test_options \
+    "1000 1000 " \
+    "-qp \"/home/nonexistent\"" \
+    "${os}" \
+    "" \
+    "sh -c \"ls -an /home/nonexistent/ | awk -F ' ' 'FNR==2{print \\\\\\\$3\\\" \\\"\\\\\\\$4\\\" \\\"}'\""
+  # Test --path.
+  test_options \
+    "1000 1000 " \
+    "-q --path \"/home/nonexistent\"" \
+    "${os}" \
+    "" \
+    "sh -c \"ls -an /home/nonexistent/ | awk -F ' ' 'FNR==2{print \\\\\\\$3\\\" \\\"\\\\\\\$4\\\" \\\"}'\""
+  # Test two paths separated by a colon.
+  test_options \
+    "1000 1000 " \
+    "-qp \"/home/nonexistent:/home/nonexistent\"" \
+    "${os}" \
+    "" \
+    "sh -c \"ls -an /home/nonexistent/ | awk -F ' ' 'FNR==2{print \\\\\\\$3\\\" \\\"\\\\\\\$4\\\" \\\"}'\""
+  # Test a different UID and GID
+  test_options \
+    "1234 5678 1234 5678 " \
+    "-qp \"/home/nonexistent:/home/nonexistent\" -p \"/etc\" -u 1234 -g 5678" \
+    "${os}" \
+    "" \
+    "sh -c \"ls -an /home/nonexistent/ /etc/passwd | awk -F ' ' '((FNR==1)||(FNR==5)){print \\\\\\\$3\\\" \\\"\\\\\\\$4\\\" \\\"}'\""
+  # Test tomfoolery.
+  test_options \
+    "1000 1000 " \
+    "-qp \"/foo/bar\\\";echo frog\"" \
+    "${os}" \
+    "" \
+    "sh -c \"ls -an \\\"/foo/bar\\\\\\\\\\\";echo frog\\\" | awk -F ' ' 'FNR==2{print \\\\\\\$3\\\" \\\"\\\\\\\$4\\\" \\\"}'\""
+  # Test an invalid path.
+  case "${os}" in
+    alpine)
+      test_options \
+        "mkdir: can't create directory '': No such file or directoryERROR (300): We could not create the directory (  )." \
+        "-qp \":/home/nonexistent\"" \
+        "${os}"
+      break
+      ;;
+    centos|debian|fedora|ubuntu)
+      test_options \
+        "mkdir: cannot create directory '': No such file or directory${before_error}ERROR (300):${after_error} We could not create the directory (  ).${reset}" \
+        "-qp \":/home/nonexistent\"" \
+        "${os}"
+      break
+      ;;
+    *)
+      print_sn "$(output_red)ERROR: We encountered an unexpected case ${case}.$(output_reset)"
+      exit 1
+      ;;
+  esac
+
   print_test_header "Test commands with options, spaces, quotes, backlashes, and backticks."
 
   test_options \

@@ -76,7 +76,8 @@ Options:
 
 Environment Variables:
   RUN_NON_ROOT_COMMAND    The command to execute if a command is not given; the
-                          default is sh.
+                          default is bash; if bash does not exist, the default
+                          is sh.
   RUN_NON_ROOT_GID        The group ID to use when executing the command; see
                           the --gid option for more info.
   RUN_NON_ROOT_GROUP      The group name to use when executing the command; see
@@ -87,7 +88,7 @@ Environment Variables:
                           the --user option for more info.
 
 Examples:
-  # Run sh as a non-root user.
+  # Run bash or sh as a non-root user.
   run-non-root
 
   # Run id as a non-root user.
@@ -195,7 +196,11 @@ add_user () {
       print_s ' --create-home'
       print_s " --gid \"${gid}\""
       print_s ' --no-log-init'
-      print_s ' --shell /bin/sh'
+      if test_command_exists 'bash'; then
+        print_s ' --shell /bin/bash'
+      else
+        print_s ' --shell /bin/sh'
+      fi
       if [ -n "${uid}" ]; then
         print_s " --uid \"${uid}\""
       fi
@@ -694,7 +699,13 @@ run_as_non_root_user () {
   # List all groups: getent group
   # List all users: getent passwd
 
-  local command="${1:-sh}"
+  local command=''
+  if test_command_exists 'bash'; then
+    command="${1:-bash}"
+  else
+    command="${1:-sh}"
+  fi
+
   local debug="$2"
   local gid="$3"
   local group_name="$4"

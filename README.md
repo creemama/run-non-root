@@ -60,7 +60,8 @@ Options:
 
 Environment Variables:
   RUN_NON_ROOT_COMMAND    The command to execute if a command is not given; the
-                          default is sh.
+                          default is bash; if bash does not exist, the default
+                          is sh.
   RUN_NON_ROOT_GID        The group ID to use when executing the command; see
                           the --gid option for more info.
   RUN_NON_ROOT_GROUP      The group name to use when executing the command; see
@@ -71,7 +72,7 @@ Environment Variables:
                           the --user option for more info.
 
 Examples:
-  # Run sh as a non-root user.
+  # Run bash or sh as a non-root user.
   run-non-root
 
   # Run id as a non-root user.

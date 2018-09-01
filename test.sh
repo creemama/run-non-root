@@ -9,15 +9,19 @@
 # "How to recognize whether bash or dash is being used within a script?"
 # https://stackoverflow.com/questions/23011370/how-to-recognize-whether-bash-or-dash-is-being-used-within-a-script
 
-# set -o xtrace
+# "How does the leading dollar sign affect single quotes in Bash?"
+# https://stackoverflow.com/questions/11966312/how-does-the-leading-dollar-sign-affect-single-quotes-in-bash
+
 set -o errexit -o nounset
+
+# The recommendation is to set IFS=$'\n\t', but the following works in Bash and
+# Dash.
+IFS="$(printf '\n\t' '')"
+
 if [ -n "${BASH_VERSION:-}" ]; then
   # set -o pipefail fails on Debian 9.5 and Ubuntu 18.04, which use dash by
-  # default. For dash shells, setting IFS produces weird behavior with
-  # statements like
-  #   eval $return_gid="'${local_gid}'"
+  # default.
   set -o pipefail
-  IFS=$'\n\t'
 fi
 
 assert_equals() {

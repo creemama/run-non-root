@@ -135,6 +135,8 @@ test () {
   test_image 'fedora:28' 'sh -c "dnf install -y procps-ng && run-non-root ps aux"' 'fedora'
   test_image 'ubuntu:18.04' 'run-non-root -- ps aux' 'ubuntu'
 
+  test_examples
+
   # Test check_for_getopt since CentOS 6 does not have getopt by default.
   test_bare_image 'centos:6' 'run-non-root -- ps aux'
 }
@@ -167,6 +169,62 @@ test_bare_image () {
   )"
   print_nsn "$(output_green)Testing $(output_cyan)${docker_command}$(output_reset)$(output_green) ... $(output_reset)"
   eval "$docker_command"
+}
+
+test_examples () {
+  local actual=''
+  local docker_command=''
+
+  docker_command="$(
+    print_s 'docker run'
+    print_s ' -it'
+    print_s ' --rm'
+    print_s " --volume $(pwd)/run-non-root.sh:/usr/local/bin/run-non-root:ro"
+    print_s " creemama/run-non-root:1.3.0-certbot"
+    print_s " -q"
+    print_s " --"
+    print_s " certbot --help"
+  )"
+  print_sn "$(output_green)Testing $(output_cyan)${docker_command}$(output_reset)$(output_green) ... $(output_reset)"
+  eval "${docker_command}" >&3 || printf "%s\n" "Exit Code: $?"
+  actual="$(cat <&4)"
+  print_snn "${actual}"
+  assert_equals \
+    "*USE_GREP* certbot [SUBCOMMAND] [options] [-d DOMAIN] [-d DOMAIN] ..." \
+    "${actual}"
+
+  docker_command="$(
+    print_s 'docker run'
+    print_s ' -it'
+    print_s ' --rm'
+    print_s " --volume $(pwd)/run-non-root.sh:/usr/local/bin/run-non-root:ro"
+    print_s " creemama/run-non-root:1.3.0-certbot-renew-cron"
+    print_s " --"
+    print_s " run-non-root-certbot --quiet"
+  )"
+  print_sn "$(output_green)Testing $(output_cyan)${docker_command}$(output_reset)$(output_green) ... $(output_reset)"
+  eval "${docker_command}" >&3 || printf "%s\n" "Exit Code: $?"
+  actual="$(cat <&4)"
+  print_snn "${actual}"
+  assert_equals \
+    "*USE_GREP* No renewals were attempted." \
+    "${actual}"
+
+  docker_command="$(
+    print_s 'docker run'
+    print_s ' -it'
+    print_s ' --rm'
+    print_s " --volume $(pwd)/run-non-root.sh:/usr/local/bin/run-non-root:ro"
+    print_s " creemama/run-non-root:1.3.0-node"
+    print_s " -q"
+    print_s " --"
+    print_s " node -e 'console.log(\"foo bar\")'"
+  )"
+  print_sn "$(output_green)Testing $(output_cyan)${docker_command}$(output_reset)$(output_green) ... $(output_reset)"
+  eval "${docker_command}" >&3 || printf "%s\n" "Exit Code: $?"
+  actual="$(cat <&4)"
+  print_snn "${actual}"
+  assert_equals "foo bar" "${actual}"
 }
 
 test_image () {

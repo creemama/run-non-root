@@ -920,6 +920,23 @@ update_directory_permissions() {
       && print_sn "$(output_cyan)DONE$(output_reset)"
     fi
 
+    # If the directory already has the correct UID and GID, then do nothing. We
+    # assume here that if the directory already has the correct UID and GID,
+    # then the UIDs and GIDs of its contents are also correct. If this
+    # assumption is not correct, then handle any requirements outside this
+    # script.
+
+    if [ "$(ls -adn "${arg}" | awk -F ' ' '{print $3" "$4}')" = \
+         "$(id -u "${username}") ${gid}" ]; then
+      if [ ! "${quiet}" = "y" ]; then
+        print_warning "$(
+          print_s "We did not call chown on the directory ( ${arg} ). "
+          print_s "Its owner is already ( ${username}:${gid} )."
+        )"
+      fi
+      continue
+    fi
+
     local chown_v_option=""
     if [ "${debug}" = "y" ] && [ ! "${quiet}" = "y" ]; then
       chown_v_option="-v"

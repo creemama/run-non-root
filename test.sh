@@ -38,6 +38,15 @@ assert_equals() {
   actual=`print_s "${actual}" | sed -e "s/\(ps aux${whitespace}\)${integer}/\12/g"`
   actual=`print_s "${actual}" | sed -e "s/\(ps aux[a-z][a-z]*\)${whitespace}${integer}/\1 2/g"`
 
+  if printf "%s" "${expected}" | grep -q "^\*USE_GREP\*"; then
+    local expected_substring="$(printf "%s" "${expected}" | sed -E "s/\*USE_GREP\* (.*)/\\1/")"
+    if ! printf "%s" "${actual}" | grep -Fq "${expected_substring}"; then
+      print_sn "$(output_red)ERROR: We expected \"$(output_bold)${expected_substring}$(output_reset)$(output_red)\" to appear in \"$(output_bold)${actual}\"$(output_reset)"
+      exit 1
+    fi
+    return 0
+  fi
+
   if [ "${expected}" != "${actual}" ]; then
     print_sn "$(output_red)ERROR: We expected \"$(output_bold)${expected}$(output_reset)$(output_red)\" but got \"$(output_bold)${actual}\"$(output_reset)"
     exit 1
@@ -210,6 +219,8 @@ test_image () {
 
   local before_error=""
   local after_error=""
+  local before_warning=""
+  local after_warning=""
   local reset=""
   case "${os}" in
     alpine|fedora)
@@ -218,6 +229,8 @@ test_image () {
     centos|debian|ubuntu)
       before_error="[31m[1m"
       after_error="(B[m[31m"
+      before_warning="[33m[1m"
+      after_warning="(B[m[33m"
       reset="(B[m"
       break
       ;;
@@ -662,6 +675,19 @@ test_image () {
     "${os}" \
     "" \
     "sh -c \"ls -an \\\"/foo/bar\\\\\\\\\\\";echo frog\\\" | awk -F ' ' 'FNR==2{print \\\\\\\$3\\\" \\\"\\\\\\\$4\\\" \\\"}'\""
+  # Test directories that already have correct ownership.
+  test_options \
+    "*USE_GREP* ${before_warning}WARNING:${after_warning} We did not call chown on the directory ( /etc ). Its owner is already ( root:0 ).${reset}${before_warning}WARNING:${after_warning} We did not call chown on the directory ( /var ). Its owner is already ( root:0 )." \
+    "-p \"/etc:/var\" -u 0" \
+    "${os}" \
+    "" \
+    "true"
+  test_options \
+    "*USE_GREP* ${before_warning}WARNING:${after_warning} We did not call chown on the directory ( /home/nonroot ). Its owner is already ( nonroot:1000 )." \
+    "-p \"/home/nonroot\"" \
+    "${os}" \
+    "" \
+    "true"
   # Test an invalid path.
   case "${os}" in
     alpine)

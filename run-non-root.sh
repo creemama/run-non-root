@@ -116,13 +116,13 @@ add_group () {
 
   if [ -z "${local_group_name}" ]; then
     if test_group_exists "${username}"; then
-      if [ "${username}" = "nonroot" ]; then
+      if [ "${username}" = 'nonroot' ]; then
         # The nonroot group already exists.
         eval $return_gid="'$(id -gn ${nonroot})'"
         eval $return_group_name="'nonroot'"
         return
       fi
-      local_group_name="nonroot"
+      local_group_name='nonroot'
     else
       local_group_name="${username}"
     fi
@@ -141,15 +141,15 @@ add_group () {
 
   if ! eval_command \
     "$(
-      print_s "groupadd"
+      print_s 'groupadd'
       if [ -n "${local_gid}" ]; then
         print_s " --gid \"${local_gid}\""
       fi
       print_s " \"${local_group_name}\""
     )" \
     "${debug}" \
-    "y"; then
-    local gid_part=""
+    'y'; then
+    local gid_part=''
     if [ -n "${local_gid}" ]; then
       gid_part=" with ID ( ${local_gid} )"
     fi
@@ -158,7 +158,7 @@ add_group () {
   fi
 
   if [ -z "${local_gid}" ]; then
-    local_gid="$(getent group ${local_group_name} | awk -F ":" '{print $3}')"
+    local_gid="$(getent group ${local_group_name} | awk -F ':' '{print $3}')"
   fi
 
   eval $return_gid="'${local_gid}'"
@@ -186,19 +186,19 @@ add_user () {
 
   if ! eval_command \
     "$(
-      print_s "useradd"
-      print_s " --create-home"
+      print_s 'useradd'
+      print_s ' --create-home'
       print_s " --gid \"${gid}\""
-      print_s " --no-log-init"
-      print_s " --shell /bin/sh"
+      print_s ' --no-log-init'
+      print_s ' --shell /bin/sh'
       if [ -n "${uid}" ]; then
         print_s " --uid \"${uid}\""
       fi
       print_s " \"${username}\""
     )" \
     "${debug}" \
-    "y"; then
-    local uid_part=""
+    'y'; then
+    local uid_part=''
     if [ -n "${uid}" ]; then
       uid_part=" with ID ( ${uid} )"
     fi
@@ -209,15 +209,15 @@ add_user () {
 apk_add_shadow () {
   local debug="$1"
   local quiet="$2"
-  eval_command "apk update" "${debug}" "${quiet}"
-  eval_command "apk add shadow" "${debug}" "${quiet}"
+  eval_command 'apk update' "${debug}" "${quiet}"
+  eval_command 'apk add shadow' "${debug}" "${quiet}"
 }
 
 apk_add_su_exec () {
   local debug="$1"
   local quiet="$2"
-  eval_command "apk update" "${debug}" "${quiet}"
-  eval_command "apk add su-exec" "${debug}" "${quiet}"
+  eval_command 'apk update' "${debug}" "${quiet}"
+  eval_command 'apk add su-exec' "${debug}" "${quiet}"
 }
 
 apk_add_tini () {
@@ -225,36 +225,36 @@ apk_add_tini () {
   local quiet="$2"
   eval_command \
     "$(
-      print_s "wget"
-      print_s " -O /usr/local/bin/tini"
-      print_s " https://github.com/krallin/tini/releases/download/v0.18.0/tini-static"
+      print_s 'wget'
+      print_s ' -O /usr/local/bin/tini'
+      print_s ' https://github.com/krallin/tini/releases/download/v0.18.0/tini-static'
     )" \
     "${debug}" \
     "${quiet}"
-  eval_command "chmod +x /usr/local/bin/tini" "${debug}" "y"
+  eval_command 'chmod +x /usr/local/bin/tini' "${debug}" 'y'
 }
 
 apt_get_install_su_exec () {
   local debug="$1"
   local quiet="$2"
-  eval_command "apt-get update" "${debug}" "${quiet}"
-  eval_command "apt-get install -y curl gcc make unzip" "${debug}" "${quiet}"
+  eval_command 'apt-get update' "${debug}" "${quiet}"
+  eval_command 'apt-get install -y curl gcc make unzip' "${debug}" "${quiet}"
   curl_su_exec "${debug}" "${quiet}"
 }
 
 apt_get_install_tini () {
   local debug="$1"
   local quiet="$2"
-  eval_command "apt-get update" "${debug}" "${quiet}"
-  eval_command "apt-get install -y curl" "${debug}" "${quiet}"
+  eval_command 'apt-get update' "${debug}" "${quiet}"
+  eval_command 'apt-get install -y curl' "${debug}" "${quiet}"
   curl_tini "${debug}" "${quiet}"
 }
 
 check_for_getopt () {
   local debug="$1"
   local quiet="$2"
-  if ! test_command_exists "getopt"; then
-    if test_command_exists "yum"; then
+  if ! test_command_exists 'getopt'; then
+    if test_command_exists 'yum'; then
       yum_install_getopt "${debug}" "${quiet}"
     fi
   fi
@@ -263,8 +263,8 @@ check_for_getopt () {
 check_for_groupadd () {
   local debug="$1"
   local quiet="$2"
-  if ! test_command_exists "groupadd"; then
-    if test_command_exists "apk"; then
+  if ! test_command_exists 'groupadd'; then
+    if test_command_exists 'apk'; then
       apk_add_shadow "${debug}" "${quiet}"
     fi
   fi
@@ -273,20 +273,20 @@ check_for_groupadd () {
 check_for_su_exec () {
   local debug="$1"
   local quiet="$2"
-  if ! test_command_exists "su-exec"; then
+  if ! test_command_exists 'su-exec'; then
 
     # "Package Management Basics: apt, yum, dnf, pkg"
     # https://www.digitalocean.com/community/tutorials/package-management-basics-apt-yum-dnf-pkg.
 
-    if test_command_exists "apk"; then
+    if test_command_exists 'apk'; then
       apk_add_su_exec "${debug}" "${quiet}"
       return "$?"
     fi
-    if test_command_exists "apt-get"; then
+    if test_command_exists 'apt-get'; then
       apt_get_install_su_exec "${debug}" "${quiet}"
       return "$?"
     fi
-    if test_command_exists "yum"; then
+    if test_command_exists 'yum'; then
       yum_install_su_exec "${debug}" "${quiet}"
       return "$?"
     fi
@@ -296,16 +296,16 @@ check_for_su_exec () {
 check_for_tini () {
   local debug="$1"
   local quiet="$2"
-  if ! test_command_exists "tini"; then
-    if test_command_exists "apk"; then
+  if ! test_command_exists 'tini'; then
+    if test_command_exists 'apk'; then
       apk_add_tini "${debug}" "${quiet}"
       return "$?"
     fi
-    if test_command_exists "apt-get"; then
+    if test_command_exists 'apt-get'; then
       apt_get_install_tini "${debug}" "${quiet}"
       return "$?"
     fi
-    if test_command_exists "yum"; then
+    if test_command_exists 'yum'; then
       yum_install_tini "${debug}" "${quiet}"
       return "$?"
     fi
@@ -315,16 +315,16 @@ check_for_tini () {
 check_for_useradd () {
   local debug="$1"
   local quiet="$2"
-  if ! test_command_exists "useradd"; then
-    if test_command_exists "apk"; then
+  if ! test_command_exists 'useradd'; then
+    if test_command_exists 'apk'; then
       apk_add_shadow "${debug}" "${quiet}"
     fi
   fi
-  if test_command_exists "apk"; then
+  if test_command_exists 'apk'; then
     # In alpine:3.7, unless we execute the following command, we get the
     # following error after calling useradd:
     # Creating mailbox file: No such file or directory
-    eval_command "mkdir -p /var/mail" "${debug}" "y"
+    eval_command 'mkdir -p /var/mail' "${debug}" 'y'
   fi
 }
 
@@ -332,37 +332,37 @@ curl_su_exec () {
   # The -L (or --location) option follows redirects.
   eval_command \
     "$(
-      print_s "curl"
-      print_s " -L"
-      print_s " https://github.com/ncopa/su-exec/archive/dddd1567b7c76365e1e0aac561287975020a8fad.zip"
-      print_s " -o su-exec.zip"
+      print_s 'curl'
+      print_s ' -L'
+      print_s ' https://github.com/ncopa/su-exec/archive/dddd1567b7c76365e1e0aac561287975020a8fad.zip'
+      print_s ' -o su-exec.zip'
     )" \
     "${debug}" \
     "${quiet}"
-  eval_command "unzip su-exec.zip" "${debug}" "${quiet}"
-  eval_command "cd su-exec-dddd1567b7c76365e1e0aac561287975020a8fad" "${debug}" "y"
-  eval_command "make" "${debug}" "${quiet}"
-  eval_command "mv su-exec /usr/local/bin" "${debug}" "y"
-  eval_command "cd .." "${debug}" "y"
-  eval_command "rm -rf su-exec-dddd1567b7c76365e1e0aac561287975020a8fad" "${debug}" "y"
+  eval_command 'unzip su-exec.zip' "${debug}" "${quiet}"
+  eval_command 'cd su-exec-dddd1567b7c76365e1e0aac561287975020a8fad' "${debug}" 'y'
+  eval_command 'make' "${debug}" "${quiet}"
+  eval_command 'mv su-exec /usr/local/bin' "${debug}" 'y'
+  eval_command 'cd ..' "${debug}" 'y'
+  eval_command 'rm -rf su-exec-dddd1567b7c76365e1e0aac561287975020a8fad' "${debug}" 'y'
 }
 
 curl_tini () {
   # The -L (or --location) option follows redirects.
   eval_command \
     "$(
-      print_s "curl"
-      print_s " -L"
-      print_s " https://github.com/krallin/tini/releases/download/v0.18.0/tini-static"
-      print_s " -o /usr/local/bin/tini"
+      print_s 'curl'
+      print_s ' -L'
+      print_s ' https://github.com/krallin/tini/releases/download/v0.18.0/tini-static'
+      print_s ' -o /usr/local/bin/tini'
     )" \
     "${debug}" \
     "${quiet}"
-  eval_command "chmod +x /usr/local/bin/tini" "${debug}" "y"
+  eval_command 'chmod +x /usr/local/bin/tini' "${debug}" 'y'
 }
 
 escape_double_quotation_marks () {
-  print_s "$1" | sed "s/\"/\\\\\"/g"
+  print_s "$1" | sed 's/"/\\"/g'
 }
 
 eval_command () {
@@ -370,18 +370,18 @@ eval_command () {
   local debug="$2"
   local quiet="$3"
 
-  if [ "${quiet}" = "y" ]; then
+  if [ "${quiet}" = 'y' ]; then
     command="${command} > /dev/null 2>&1"
   fi
 
-  ([ "${debug}" = "y" ] || [ ! "${quiet}" = "y" ]) \
+  ([ "${debug}" = 'y' ] || [ ! "${quiet}" = 'y' ]) \
   && print_ns "$(output_cyan)Executing$(output_reset) ${command} ... "
 
-  [ ! "${quiet}" = "y" ] && printf "\n" ""
+  [ ! "${quiet}" = 'y' ] && print_sn ''
 
   eval "${command}" || return "$?"
 
-  ([ "${debug}" = "y" ] || [ ! "${quiet}" = "y" ]) \
+  ([ "${debug}" = 'y' ] || [ ! "${quiet}" = 'y' ]) \
   && print_sn "$(output_cyan)DONE$(output_reset)"
 
   return 0
@@ -401,7 +401,7 @@ local_tput () {
   if ! test_is_tty; then
     return 0
   fi
-  if test_command_exists "tput"; then
+  if test_command_exists 'tput'; then
     # $@ is unquoted.
     tput $@
   fi
@@ -409,12 +409,12 @@ local_tput () {
 
 main () {
   local command="${RUN_NON_ROOT_COMMAND:-}"
-  local debug=""
+  local debug=''
   local gid="${RUN_NON_ROOT_GID:-}"
   local group_name="${RUN_NON_ROOT_GROUP:-}"
-  local init=""
-  local path=""
-  local quiet=""
+  local init=''
+  local path=''
+  local quiet=''
   local uid="${RUN_NON_ROOT_UID:-}"
   local username="${RUN_NON_ROOT_USER:-}"
 
@@ -425,9 +425,9 @@ main () {
   # https://unix.stackexchange.com/questions/181937/how-create-a-temporary-file-in-shell-script
 
   # debug and quiet are not available yet.
-  check_for_getopt "y" "y"
+  check_for_getopt 'y' 'y'
 
-  tmpfile=$(mktemp)
+  tmpfile="$(mktemp)"
   local parsed_options="$(
     getopt \
       --options=df:g:hip:qt:u:v \
@@ -440,11 +440,11 @@ main () {
   if [ -n "${getopt_warnings}" ]; then
     exit_with_error 1 \
       "$(
-        print_s "There was an error parsing the given options. "
-        print_s "You may need to (a) remove invalid options or "
+        print_s 'There was an error parsing the given options. '
+        print_s 'You may need to (a) remove invalid options or '
         print_s "(b) use -- to separate run-non-root's options "
-        print_s "from the command. "
-        print_s "Run run-non-root --help for more info. "
+        print_s 'from the command. '
+        print_s 'Run run-non-root --help for more info. '
         print_s "(From getopt: ${getopt_warnings})"
       )"
   fi
@@ -453,12 +453,12 @@ main () {
   while true; do
     case "$1" in
       -d|--debug)
-        if [ "${debug}" = "y" ]; then
+        if [ "${debug}" = 'y' ]; then
           # "Showing the running command in a bash script with "set -x""
           # https://www.stefaanlippens.net/set-x/
           set -o xtrace
         fi
-        debug="y"
+        debug='y'
         shift
         ;;
       -f|--group)
@@ -474,7 +474,7 @@ main () {
         exit 0
         ;;
       -i|--init)
-        init="y"
+        init='y'
         shift
         ;;
       -p|--path)
@@ -486,7 +486,7 @@ main () {
         shift 2
         ;;
       -q|--quiet)
-        quiet="y"
+        quiet='y'
         shift
         ;;
       -t|--user)
@@ -525,7 +525,7 @@ main () {
     command="$(stringify_arguments "$@")"
   fi
 
-  if [ "${debug}" = "y" ]; then
+  if [ "${debug}" = 'y' ]; then
     cat << EOF
 
 $(output_cyan)Command Options:$(output_reset)
@@ -559,7 +559,7 @@ EOF
   && test_contains_double_quotation_mark "${group_name}"; then
     exit_with_error 3 \
       "$(
-        print_s "The group name must not contain a double quotation mark; "
+        print_s 'The group name must not contain a double quotation mark; '
         print_s "it is ( ${group_name} )."
       )"
   fi
@@ -568,7 +568,7 @@ EOF
   && test_contains_double_quotation_mark "${username}"; then
     exit_with_error 4 \
       "$(
-        print_s "The username must not contain a double quotation mark; "
+        print_s 'The username must not contain a double quotation mark; '
         print_s "it is ( ${username} )."
       )"
   fi
@@ -622,19 +622,19 @@ output_yellow () {
 }
 
 print_ns () {
-  printf "\n%s" "${1}"
+  printf '\n%s' "${1}"
 }
 
 print_snn () {
-  printf "%s\n\n" "${1}"
+  printf '%s\n\n' "${1}"
 }
 
 print_s () {
-  printf "%s" "${1}"
+  printf '%s' "${1}"
 }
 
 print_sn () {
-  printf "%s\n" "${1}"
+  printf '%s\n' "${1}"
 }
 
 print_warning () {
@@ -648,17 +648,17 @@ run_as_current_user () {
   local init="$3"
   local quiet="$4"
 
-  local tini_part=""
-  if [ "${init}" = "y" ]; then
+  local tini_part=''
+  if [ "${init}" = 'y' ]; then
     check_for_tini "${debug}" "${quiet}"
-    tini_part="tini -- "
+    tini_part='tini -- '
   fi
 
-  if [ "${debug}" = "y" ] || [ ! "${quiet}" = "y" ]; then
+  if [ "${debug}" = 'y' ] || [ ! "${quiet}" = 'y' ]; then
     print_warning \
       "$(
-        print_s "You are already running as a non-root user. "
-        print_s "We have ignored all group and user options."
+        print_s 'You are already running as a non-root user. '
+        print_s 'We have ignored all group and user options.'
       )"
     print_ns "$(output_green)Running ( "
     print_s "exec ${tini_part}$(output_bold)${command}$(output_reset)"
@@ -719,8 +719,8 @@ run_as_non_root_user () {
     username_exists=0
   fi
 
-  local create_user=""
-  local create_group=""
+  local create_user=''
+  local create_group=''
 
   # "Returning Values from Bash Functions"
   # https://www.linuxjournal.com/content/return-values-bash-functions
@@ -778,14 +778,14 @@ run_as_non_root_user () {
       "${username}"
   fi
 
-  local tini_part=""
-  if [ "${init}" = "y" ]; then
+  local tini_part=''
+  if [ "${init}" = 'y' ]; then
     check_for_tini "${debug}" "${quiet}"
-    tini_part="tini -- "
+    tini_part='tini -- '
   fi
 
   check_for_su_exec "${debug}" "${quiet}"
-  if [ "${debug}" = "y" ] || [ -z ${quiet} ]; then
+  if [ "${debug}" = 'y' ] || [ -z ${quiet} ]; then
     print_ns "$(output_green)Running ( "
     print_s "exec su-exec ${username}:${gid} "
     print_s "${tini_part}$(output_bold)${command}$(output_reset)"
@@ -812,7 +812,7 @@ run_non_root () {
   local uid="$8"
   local username="$9"
 
-  if [ "$(whoami)" = "root" ]; then
+  if [ "$(whoami)" = 'root' ]; then
     run_as_non_root_user \
       "${command}" \
       "${debug}" \
@@ -835,7 +835,7 @@ run_non_root () {
 stringify_arguments () {
   # "How to use arguments like $1 $2 … in a for loop?"
   # https://unix.stackexchange.com/questions/314032/how-to-use-arguments-like-1-2-in-a-for-loop
-  local command=$(escape_double_quotation_marks "${1}")
+  local command="$(escape_double_quotation_marks "${1}")"
   shift
   for arg
     # "How to check if a string has spaces in Bash shell"
@@ -858,7 +858,7 @@ test_command_exists () {
 
 test_contains_double_quotation_mark () {
   local string="$1"
-  print_s "$1" | grep "\"" > /dev/null
+  print_s "$1" | grep '"' > /dev/null
 }
 
 test_group_exists () {
@@ -899,7 +899,7 @@ update_directory_permissions() {
   # "Does `dash` support `bash` style arrays?"
   # https://stackoverflow.com/questions/14594033/does-dash-support-bash-style-arrays
   local old_IFS="$IFS"
-  IFS=":"
+  IFS=':'
   set -- ${path}
   IFS="${old_IFS}"
 
@@ -908,7 +908,7 @@ update_directory_permissions() {
     # Since arg could be anything, we do not call eval_command here.
 
     if [ ! -d "${arg}" ]; then
-      ([ "${debug}" = "y" ] || [ ! "${quiet}" = "y" ]) \
+      ([ "${debug}" = 'y' ] || [ ! "${quiet}" = 'y' ]) \
       && print_ns "$(output_cyan)Executing$(output_reset) " \
       && print_s "mkdir -p \"${arg}\" ... "
 
@@ -916,7 +916,7 @@ update_directory_permissions() {
         exit_with_error 300 "We could not create the directory ( ${arg} )."
       fi
 
-      ([ "${debug}" = "y" ] || [ ! "${quiet}" = "y" ]) \
+      ([ "${debug}" = 'y' ] || [ ! "${quiet}" = 'y' ]) \
       && print_sn "$(output_cyan)DONE$(output_reset)"
     fi
 
@@ -928,7 +928,7 @@ update_directory_permissions() {
 
     if [ "$(ls -adn "${arg}" | awk -F ' ' '{print $3" "$4}')" = \
          "$(id -u "${username}") ${gid}" ]; then
-      if [ ! "${quiet}" = "y" ]; then
+      if [ ! "${quiet}" = 'y' ]; then
         print_warning "$(
           print_s "We did not call chown on the directory ( ${arg} ). "
           print_s "Its owner is already ( ${username}:${gid} )."
@@ -937,25 +937,25 @@ update_directory_permissions() {
       continue
     fi
 
-    local chown_v_option=""
-    if [ "${debug}" = "y" ] && [ ! "${quiet}" = "y" ]; then
-      chown_v_option="-v"
+    local chown_v_option=''
+    if [ "${debug}" = 'y' ] && [ ! "${quiet}" = 'y' ]; then
+      chown_v_option='-v'
     fi
 
-    ([ "${debug}" = "y" ] || [ ! "${quiet}" = "y" ]) \
+    ([ "${debug}" = 'y' ] || [ ! "${quiet}" = 'y' ]) \
     && print_ns "$(output_cyan)Executing$(output_reset) " \
     && print_s "chown -R ${chown_v_option} \"${username}:${gid}\" \"${arg}\"" \
-    && print_s " ... "
+    && print_s ' ... '
 
-    [ ! "${quiet}" = "y" ] && printf "\n" ""
+    [ ! "${quiet}" = 'y' ] && print_sn ''
 
     if ! chown -R ${chown_v_option} "${username}:${gid}" "${arg}" \
-    && [ ! "${quiet}" = "y" ]; then
+    && [ ! "${quiet}" = 'y' ]; then
       print_warning "Something went wrong changing the ownership of ( ${arg} )."
       true
     fi
 
-    ([ "${debug}" = "y" ] || [ ! "${quiet}" = "y" ]) \
+    ([ "${debug}" = 'y' ] || [ ! "${quiet}" = 'y' ]) \
     && print_sn "$(output_cyan)DONE$(output_reset)"
 
   done
@@ -975,19 +975,19 @@ update_group_spec () {
   local return_create_group="$9"
   local username="${10}"
 
-  local local_create_group=""
+  local local_create_group=''
 
   if [ "${gid_exists}" -eq 0 ]; then
 
     local group_name_of_gid="$(
-      getent group "${local_gid}" | awk -F ":" '{print $1}'
+      getent group "${local_gid}" | awk -F ':' '{print $1}'
     )"
-    if [ ! "${quiet}" = "y" ] \
+    if [ ! "${quiet}" = 'y' ] \
     && [ -n "${local_group_name}" ] \
     && [ "${local_group_name}" != "${group_name_of_gid}" ]; then
       print_warning \
         "$(
-          print_s "We have ignored the group name you specified, "
+          print_s 'We have ignored the group name you specified, '
           print_s "( ${local_group_name} ). The GID you specified, "
           print_s "( ${local_gid} ), exists with the group name "
           print_s "( ${group_name_of_gid} )."
@@ -999,11 +999,11 @@ update_group_spec () {
 
     if [ -z "${local_gid}" ]; then
       local gid_of_group_name="$(
-        getent group "${local_group_name}" | awk -F ":" '{print $3}'
+        getent group "${local_group_name}" | awk -F ':' '{print $3}'
       )"
       local_gid="${gid_of_group_name}"
     else
-      local_group_name=""
+      local_group_name=''
       local_create_group=0
     fi
 
@@ -1035,20 +1035,20 @@ update_user_spec () {
   local uid_exists="$7"
   local username_exists="$8"
 
-  local local_create_user=""
+  local local_create_user=''
 
   if [ "${uid_exists}" -eq 0 ]; then
 
     # Using id with a UID does not work in Alpine Linux.
     local username_of_uid="$(
-      getent passwd "${local_uid}" | awk -F ":" '{print $1}'
+      getent passwd "${local_uid}" | awk -F ':' '{print $1}'
     )"
-    if [ ! "${quiet}" = "y" ] \
+    if [ ! "${quiet}" = 'y' ] \
     && [ -n "${local_username}" ] \
     && [ "${local_username}" != "${username_of_uid}" ]; then
       print_warning \
         "$(
-          print_s "We have ignored the username you specified, "
+          print_s 'We have ignored the username you specified, '
           print_s "( ${local_username} ). The UID you specified, "
           print_s "( ${local_uid} ), exists with the username "
           print_s "( ${username_of_uid} )."
@@ -1062,24 +1062,24 @@ update_user_spec () {
       local uid_of_username="$(id -u "${local_username}")"
       local_uid="${uid_of_username}"
     else
-      local_username="nonroot"
+      local_username='nonroot'
       local_create_user=0
     fi
 
   else
 
     if [ -z "${local_username}" ]; then
-      local_username="nonroot"
+      local_username='nonroot'
     fi
     local_create_user=0
 
   fi
 
-  if [ "${local_create_user}" = "0" ] \
-  && [ "${local_username}" = "nonroot" ] \
-  && test_user_exists "nonroot"; then
+  if [ "${local_create_user}" = '0' ] \
+  && [ "${local_username}" = 'nonroot' ] \
+  && test_user_exists 'nonroot'; then
     local_uid="$(id -u nonroot)"
-    local_create_user=""
+    local_create_user=''
   fi
 
   eval $return_uid="'${local_uid}'"
@@ -1090,13 +1090,13 @@ update_user_spec () {
 yum_install_getopt () {
   local debug="$1"
   local quiet="$2"
-  eval_command "yum install -y util-linux-ng" "${debug}" "${quiet}"
+  eval_command 'yum install -y util-linux-ng' "${debug}" "${quiet}"
 }
 
 yum_install_su_exec () {
   local debug="$1"
   local quiet="$2"
-  eval_command "yum install -y gcc make unzip" "${debug}" "${quiet}"
+  eval_command 'yum install -y gcc make unzip' "${debug}" "${quiet}"
   curl_su_exec
 }
 

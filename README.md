@@ -19,6 +19,12 @@ Usage:
 Run Linux commands as a non-root user, creating a non-root user if necessary.
 
 Options:
+  -c, --chown             Colon-separated list of files and directories to run
+                          "chown USERNAME:GID" on before executing the
+                          command; you can use this option multiple times
+                          instead of using a colon-separated list; run-non-root
+                          ignores this option if you are already running as a
+                          non-root user; unlike -p this option is non-recursive.
   -d, --debug             Output debug information; using --quiet does not
                           silence debug output. Double up (-dd) for more output.
   -f, --group GROUP_NAME  The group name to use when executing the command; the
@@ -42,7 +48,8 @@ Options:
                           instead of using a colon-separated list; if a
                           directory does not exist, run-non-root attempts to
                           create it; run-non-root ignores this option if you
-                          are already running as a non-root user.
+                          are already running as a non-root user; unlike -c
+                          this option is recursive.
   -q, --quiet             Do not output "Running ( COMMAND ) as USER_INFO ..."
                           or warnings; this option does not silence --debug
                           output.

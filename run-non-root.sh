@@ -35,6 +35,12 @@ Usage:
 Run Linux commands as a non-root user, creating a non-root user if necessary.
 
 Options:
+  -c, --chown             Colon-separated list of files and directories to run
+                          "chown USERNAME:GID" on before executing the
+                          command; you can use this option multiple times
+                          instead of using a colon-separated list; run-non-root
+                          ignores this option if you are already running as a
+                          non-root user; unlike -p this option is non-recursive.
   -d, --debug             Output debug information; using --quiet does not
                           silence debug output. Double up (-dd) for more output.
   -f, --group GROUP_NAME  The group name to use when executing the command; the
@@ -58,7 +64,8 @@ Options:
                           instead of using a colon-separated list; if a
                           directory does not exist, run-non-root attempts to
                           create it; run-non-root ignores this option if you
-                          are already running as a non-root user.
+                          are already running as a non-root user; unlike -c
+                          this option is recursive.
   -q, --quiet             Do not output "Running ( COMMAND ) as USER_INFO ..."
                           or warnings; this option does not silence --debug
                           output.
@@ -418,6 +425,7 @@ local_tput () {
 }
 
 main () {
+  local chowner=''
   local command="${RUN_NON_ROOT_COMMAND:-}"
   local debug=''
   local gid="${RUN_NON_ROOT_GID:-}"
@@ -440,8 +448,8 @@ main () {
   tmpfile="$(mktemp)"
   local parsed_options="$(
     getopt \
-      --options=df:g:hip:qt:u:v \
-      --longoptions=debug,gid:,group:,help,init,path:,quiet,uid:,user:,version \
+      --options=c:df:g:hip:qt:u:v \
+      --longoptions=chown:,debug,gid:,group:,help,init,path:,quiet,uid:,user:,version \
       --name "$0" \
       -- "$@" 2> "${tmpfile}"
   )"
@@ -462,6 +470,14 @@ main () {
   eval set -- "${parsed_options}"
   while true; do
     case "$1" in
+      -c|--chown)
+        if [ -z "${chowner}" ]; then
+          chowner="$2"
+        else
+          chowner="${chowner}:$2"
+        fi
+        shift 2
+        ;;
       -d|--debug)
         if [ "${debug}" = 'y' ]; then
           # "Showing the running command in a bash script with "set -x""
@@ -539,6 +555,7 @@ main () {
     cat << EOF
 
 $(output_cyan)Command Options:$(output_reset)
+  $(output_cyan)chown=$(output_reset)${chowner}
   $(output_cyan)command=$(output_reset)${command}
   $(output_cyan)debug=$(output_reset)${debug}
   $(output_cyan)gid=$(output_reset)${gid}
@@ -596,6 +613,7 @@ EOF
   fi
 
   run_non_root \
+    "${chowner}" \
     "${command}" \
     "${debug}" \
     "${gid}" \
@@ -699,21 +717,23 @@ run_as_non_root_user () {
   # List all groups: getent group
   # List all users: getent passwd
 
+  local chowner="$1"
+
   local command=''
   if test_command_exists 'bash'; then
-    command="${1:-bash}"
+    command="${2:-bash}"
   else
-    command="${1:-sh}"
+    command="${2:-sh}"
   fi
 
-  local debug="$2"
-  local gid="$3"
-  local group_name="$4"
-  local init="$5"
-  local path="$6"
-  local quiet="$7"
-  local uid="$8"
-  local username="$9"
+  local debug="$3"
+  local gid="$4"
+  local group_name="$5"
+  local init="$6"
+  local path="$7"
+  local quiet="$8"
+  local uid="$9"
+  local username="${10}"
 
   local gid_exists=1
   if test_group_exists "${gid}"; then
@@ -794,6 +814,15 @@ run_as_non_root_user () {
       "${username}"
   fi
 
+  if [ -n "${chowner}" ]; then
+    update_ownership_non_recursively \
+      "${chowner}" \
+      "${debug}" \
+      "${gid}" \
+      "${quiet}" \
+      "${username}"
+  fi
+
   local tini_part=''
   if [ "${init}" = 'y' ]; then
     check_for_tini "${debug}" "${quiet}"
@@ -818,18 +847,20 @@ run_as_non_root_user () {
 }
 
 run_non_root () {
-  local command="$1"
-  local debug="$2"
-  local gid="$3"
-  local group_name="$4"
-  local init="$5"
-  local path="$6"
-  local quiet="$7"
-  local uid="$8"
-  local username="$9"
+  local chowner="$1"
+  local command="$2"
+  local debug="$3"
+  local gid="$4"
+  local group_name="$5"
+  local init="$6"
+  local path="$7"
+  local quiet="$8"
+  local uid="$9"
+  local username="${10}"
 
   if [ "$(whoami)" = 'root' ]; then
     run_as_non_root_user \
+      "${chowner}" \
       "${command}" \
       "${debug}" \
       "${gid}" \
@@ -965,6 +996,50 @@ update_group_spec () {
   eval $return_gid="'${local_gid}'"
   eval $return_group_name="'${local_group_name}'"
   eval $return_create_group="'${local_create_group}'"
+}
+
+update_ownership_non_recursively() {
+  local chowner="$1"
+  local debug="$2"
+  local gid="$3"
+  local quiet="$4"
+  local username="$5"
+
+  # "Does `dash` support `bash` style arrays?"
+  # https://stackoverflow.com/questions/14594033/does-dash-support-bash-style-arrays
+  local old_IFS="$IFS"
+  IFS=':'
+  set -- ${chowner}
+  IFS="${old_IFS}"
+
+  for arg; do
+
+    # Since arg could be anything, we do not call eval_command here.
+
+    local chown_v_option=''
+    if [ "${debug}" = 'y' ] && [ ! "${quiet}" = 'y' ]; then
+      chown_v_option='-v'
+    fi
+
+    ([ "${debug}" = 'y' ] || [ ! "${quiet}" = 'y' ]) \
+    && print_ns "$(output_cyan)Executing$(output_reset) " \
+    && print_s "chown ${chown_v_option} \"${username}:${gid}\" \"${arg}\"" \
+    && print_s ' ... '
+
+    [ ! "${quiet}" = 'y' ] && print_sn ''
+
+    if ! chown ${chown_v_option} "${username}:${gid}" "${arg}" \
+    && [ ! "${quiet}" = 'y' ]; then
+      print_warning "Something went wrong changing the ownership of ( ${arg} )."
+      true
+    fi
+
+    ([ "${debug}" = 'y' ] || [ ! "${quiet}" = 'y' ]) \
+    && print_sn "$(output_cyan)DONE$(output_reset)"
+
+  done
+
+  return 0
 }
 
 update_ownership_recursively() {

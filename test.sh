@@ -700,6 +700,58 @@ test_image () {
     "${os}" \
     '-e RUN_NON_ROOT_GROUP=mnop -e RUN_NON_ROOT_GID=3456 -e RUN_NON_ROOT_USER=ijkl -e RUN_NON_ROOT_UID=9012'
 
+  print_test_header 'Test the --chown option.'
+
+  test_options \
+    '1000 1000 ' \
+    '-qc "/home"' \
+    "${os}" \
+    '' \
+    "sh -c \"ls -an /home | awk -F ' ' 'FNR==2{print \\\\\\\$3\\\" \\\"\\\\\\\$4\\\" \\\"}'\""
+  # Colons at the end process correctly.
+  test_options \
+    '1000 1000 ' \
+    '-qc "/home:"' \
+    "${os}" \
+    '' \
+    "sh -c \"ls -an /home | awk -F ' ' 'FNR==2{print \\\\\\\$3\\\" \\\"\\\\\\\$4\\\" \\\"}'\""
+  test_options \
+    '1000 1000 ' \
+    '-qc "/usr/bin/getent"' \
+    "${os}" \
+    '' \
+    "sh -c \"ls -an /usr/bin/getent | awk -F ' ' 'FNR==1{print \\\\\\\$3\\\" \\\"\\\\\\\$4\\\" \\\"}'\""
+  test_options \
+    '1000 1000 1000 1000 ' \
+    '-qc "/home" -c "/usr/bin/getent"' \
+    "${os}" \
+    '' \
+    "sh -c \"ls -an /home | awk -F ' ' 'FNR==2{print \\\\\\\$3\\\" \\\"\\\\\\\$4\\\" \\\"}'; ls -an /usr/bin/getent | awk -F ' ' 'FNR==1{print \\\\\\\$3\\\" \\\"\\\\\\\$4\\\" \\\"}'\""
+  test_options \
+    '1000 1000 1000 1000 1000 1000 0 0 ' \
+    '-qc "/home:/usr/bin/getent" -c "/etc"' \
+    "${os}" \
+    '' \
+    "sh -c \"ls -an /home | awk -F ' ' 'FNR==2{print \\\\\\\$3\\\" \\\"\\\\\\\$4\\\" \\\"}'; ls -an /usr/bin/getent | awk -F ' ' 'FNR==1{print \\\\\\\$3\\\" \\\"\\\\\\\$4\\\" \\\"}'; ls -an /etc | awk -F ' ' 'FNR==2{print \\\\\\\$3\\\" \\\"\\\\\\\$4\\\" \\\"}'; ls -an /etc/default | awk -F ' ' 'FNR==2{print \\\\\\\$3\\\" \\\"\\\\\\\$4\\\" \\\"}'\""
+  test_options \
+    '1234 5678 1234 5678 1234 5678 0 0 ' \
+    '-qc "/home:/usr/bin/getent" -c "/etc" -u 1234 -g 5678' \
+    "${os}" \
+    '' \
+    "sh -c \"ls -an /home | awk -F ' ' 'FNR==2{print \\\\\\\$3\\\" \\\"\\\\\\\$4\\\" \\\"}'; ls -an /usr/bin/getent | awk -F ' ' 'FNR==1{print \\\\\\\$3\\\" \\\"\\\\\\\$4\\\" \\\"}'; ls -an /etc | awk -F ' ' 'FNR==2{print \\\\\\\$3\\\" \\\"\\\\\\\$4\\\" \\\"}'; ls -an /etc/default | awk -F ' ' 'FNR==2{print \\\\\\\$3\\\" \\\"\\\\\\\$4\\\" \\\"}'\""
+  test_options \
+    "*USE_GREP* ${before_warning}WARNING:${after_warning} Something went wrong changing the ownership of ( /nonexistent )." \
+    '-dc "/nonexistent"' \
+    "${os}" \
+    '' \
+    'true'
+  test_options \
+    "*USE_GREP* ${before_warning}WARNING:${after_warning} Something went wrong changing the ownership of (  )." \
+    '-dc ":/home"' \
+    "${os}" \
+    '' \
+    'true'
+
   print_test_header 'Test the --path option.'
 
   # Test one path.

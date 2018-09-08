@@ -743,13 +743,13 @@ test_image () {
     '-p "/etc:/var" -u 0' \
     "${os}" \
     '' \
-    "true"
+    'true'
   test_options \
     "*USE_GREP* ${before_warning}WARNING:${after_warning} We did not call chown on the directory ( /home/nonroot ). Its owner is already ( nonroot:1000 )." \
     '-p "/home/nonroot"' \
     "${os}" \
     '' \
-    "true"
+    'true'
   # Test an invalid path.
   case "${os}" in
     alpine)

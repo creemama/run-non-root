@@ -786,7 +786,7 @@ run_as_non_root_user () {
   fi
 
   if [ -n "${path}" ]; then
-    update_directory_permissions \
+    update_ownership_recursively \
       "${debug}" \
       "${gid}" \
       "${path}" \
@@ -905,7 +905,7 @@ test_user_exists () {
   fi
 }
 
-update_directory_permissions() {
+update_ownership_recursively() {
   local debug="$1"
   local gid="$2"
   local path="$3"

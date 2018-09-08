@@ -905,6 +905,68 @@ test_user_exists () {
   fi
 }
 
+update_group_spec () {
+  local create_user="$1"
+  local gid_exists="$2"
+  local group_name_exists="$3"
+  local local_gid="$4"
+  local local_group_name="$5"
+  local quiet="$6"
+  local return_gid="$7"
+  local return_group_name="$8"
+  local return_create_group="$9"
+  local username="${10}"
+
+  local local_create_group=''
+
+  if [ "${gid_exists}" -eq 0 ]; then
+
+    local group_name_of_gid="$(
+      getent group "${local_gid}" | awk -F ':' '{print $1}'
+    )"
+    if [ ! "${quiet}" = 'y' ] \
+    && [ -n "${local_group_name}" ] \
+    && [ "${local_group_name}" != "${group_name_of_gid}" ]; then
+      print_warning \
+        "$(
+          print_s 'We have ignored the group name you specified, '
+          print_s "( ${local_group_name} ). The GID you specified, "
+          print_s "( ${local_gid} ), exists with the group name "
+          print_s "( ${group_name_of_gid} )."
+        )"
+    fi
+    local_group_name="${group_name_of_gid}"
+
+  elif [ "${group_name_exists}" -eq 0 ]; then
+
+    if [ -z "${local_gid}" ]; then
+      local gid_of_group_name="$(
+        getent group "${local_group_name}" | awk -F ':' '{print $3}'
+      )"
+      local_gid="${gid_of_group_name}"
+    else
+      local_group_name=''
+      local_create_group=0
+    fi
+
+  else
+
+    if [ -z "${create_user}" ] \
+    && [ -z "${local_gid}" ] \
+    && [ -z "${local_group_name}" ]; then
+      local_gid="$(id -g "${username}")"
+      local_group_name="$(id -gn "${username}")"
+    else
+      local_create_group=0
+    fi
+
+  fi
+
+  eval $return_gid="'${local_gid}'"
+  eval $return_group_name="'${local_group_name}'"
+  eval $return_create_group="'${local_create_group}'"
+}
+
 update_ownership_recursively() {
   local debug="$1"
   local gid="$2"
@@ -977,68 +1039,6 @@ update_ownership_recursively() {
   done
 
   return 0
-}
-
-update_group_spec () {
-  local create_user="$1"
-  local gid_exists="$2"
-  local group_name_exists="$3"
-  local local_gid="$4"
-  local local_group_name="$5"
-  local quiet="$6"
-  local return_gid="$7"
-  local return_group_name="$8"
-  local return_create_group="$9"
-  local username="${10}"
-
-  local local_create_group=''
-
-  if [ "${gid_exists}" -eq 0 ]; then
-
-    local group_name_of_gid="$(
-      getent group "${local_gid}" | awk -F ':' '{print $1}'
-    )"
-    if [ ! "${quiet}" = 'y' ] \
-    && [ -n "${local_group_name}" ] \
-    && [ "${local_group_name}" != "${group_name_of_gid}" ]; then
-      print_warning \
-        "$(
-          print_s 'We have ignored the group name you specified, '
-          print_s "( ${local_group_name} ). The GID you specified, "
-          print_s "( ${local_gid} ), exists with the group name "
-          print_s "( ${group_name_of_gid} )."
-        )"
-    fi
-    local_group_name="${group_name_of_gid}"
-
-  elif [ "${group_name_exists}" -eq 0 ]; then
-
-    if [ -z "${local_gid}" ]; then
-      local gid_of_group_name="$(
-        getent group "${local_group_name}" | awk -F ':' '{print $3}'
-      )"
-      local_gid="${gid_of_group_name}"
-    else
-      local_group_name=''
-      local_create_group=0
-    fi
-
-  else
-
-    if [ -z "${create_user}" ] \
-    && [ -z "${local_gid}" ] \
-    && [ -z "${local_group_name}" ]; then
-      local_gid="$(id -g "${username}")"
-      local_group_name="$(id -gn "${username}")"
-    else
-      local_create_group=0
-    fi
-
-  fi
-
-  eval $return_gid="'${local_gid}'"
-  eval $return_group_name="'${local_group_name}'"
-  eval $return_create_group="'${local_create_group}'"
 }
 
 update_user_spec () {

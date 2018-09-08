@@ -180,7 +180,7 @@ test_examples () {
     print_s ' -it'
     print_s ' --rm'
     print_s " --volume $(pwd)/run-non-root.sh:/usr/local/bin/run-non-root:ro"
-    print_s " creemama/run-non-root:1.3.0-certbot"
+    print_s " creemama/run-non-root:1.4.0-certbot"
     print_s " -q"
     print_s " --"
     print_s " certbot --help"
@@ -198,7 +198,7 @@ test_examples () {
     print_s ' -it'
     print_s ' --rm'
     print_s " --volume $(pwd)/run-non-root.sh:/usr/local/bin/run-non-root:ro"
-    print_s " creemama/run-non-root:1.3.0-certbot-renew-cron"
+    print_s " creemama/run-non-root:1.4.0-certbot-renew-cron"
     print_s " --"
     print_s " run-non-root-certbot --quiet"
   )"
@@ -215,7 +215,7 @@ test_examples () {
     print_s ' -it'
     print_s ' --rm'
     print_s " --volume $(pwd)/run-non-root.sh:/usr/local/bin/run-non-root:ro"
-    print_s " creemama/run-non-root:1.3.0-node"
+    print_s " creemama/run-non-root:1.4.0-node"
     print_s " -q"
     print_s " --"
     print_s " node -e 'console.log(\"foo bar\")'"
@@ -1236,7 +1236,7 @@ test_options () {
     print_s ' -it'
     print_s ' --rm'
     print_s " --volume $(pwd)/run-non-root.sh:/usr/local/bin/run-non-root:ro"
-    print_s " creemama/run-non-root:1.3.0-${os}"
+    print_s " creemama/run-non-root:1.4.0-${os}"
     print_s " ${options} "
     print_s " ${command}"
   )"

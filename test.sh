@@ -180,7 +180,7 @@ test_examples () {
     print_s ' -it'
     print_s ' --rm'
     print_s " --volume $(pwd)/run-non-root.sh:/usr/local/bin/run-non-root:ro"
-    print_s " creemama/run-non-root:1.4.0-certbot"
+    print_s " creemama/run-non-root:1.5.1-certbot"
     print_s " -q"
     print_s " --"
     print_s " certbot --help"
@@ -198,7 +198,7 @@ test_examples () {
     print_s ' -it'
     print_s ' --rm'
     print_s " --volume $(pwd)/run-non-root.sh:/usr/local/bin/run-non-root:ro"
-    print_s " creemama/run-non-root:1.4.0-certbot-renew-cron"
+    print_s " creemama/run-non-root:1.5.1-certbot-renew-cron"
     print_s " --"
     print_s " run-non-root-certbot --quiet"
   )"
@@ -215,7 +215,7 @@ test_examples () {
     print_s ' -it'
     print_s ' --rm'
     print_s " --volume $(pwd)/run-non-root.sh:/usr/local/bin/run-non-root:ro"
-    print_s " creemama/run-non-root:1.4.0-node"
+    print_s " creemama/run-non-root:1.5.1-node"
     print_s " -q"
     print_s " --"
     print_s " node -e 'console.log(\"foo bar\")'"
@@ -285,10 +285,10 @@ test_image () {
   local after_warning=''
   local reset=''
   case "${os}" in
-    alpine|fedora)
+    alpine)
       break
       ;;
-    centos|debian|ubuntu)
+    centos|debian|fedora|ubuntu)
       before_error='[31m[1m'
       after_error='(B[m[31m'
       before_warning='[33m[1m'
@@ -1186,7 +1186,7 @@ test_nonroot_group_already_exists () {
     print_s ' -it'
     print_s ' --rm'
     print_s " --volume $(pwd)/run-non-root.sh:/usr/local/bin/run-non-root:ro"
-    print_s " creemama/run-non-root:1.4.0-${os}"
+    print_s " creemama/run-non-root:1.5.1-${os}"
     print_s " -c \"groupadd nonroot && run-non-root -- true\""
   )"
   print_sn "$(output_green)Testing $(output_cyan)${docker_command}$(output_reset)$(output_green) ... $(output_reset)"
@@ -1194,13 +1194,13 @@ test_nonroot_group_already_exists () {
   actual="$(cat <&4)"
   print_snn "${actual}"
   case "${os}" in
-    alpine|fedora)
+    alpine)
       assert_equals \
         "Running ( exec su-exec nonroot:1000 true ) as uid=1000(nonroot) gid=1000(nonroot) groups=1000(nonroot) ..." \
         "${actual}"
       break
       ;;
-    centos|debian|ubuntu)
+    centos|debian|fedora|ubuntu)
       assert_equals \
         "[32mRunning ( exec su-exec nonroot:1000 [1mtrue(B[m[32m ) as uid=1000(nonroot) gid=1000(nonroot) groups=1000(nonroot) ...(B[m" \
         "${actual}"
@@ -1279,7 +1279,7 @@ test_options () {
     print_s ' -it'
     print_s ' --rm'
     print_s " --volume $(pwd)/run-non-root.sh:/usr/local/bin/run-non-root:ro"
-    print_s " creemama/run-non-root:1.4.0-${os}"
+    print_s " creemama/run-non-root:1.5.1-${os}"
     print_s " ${options} "
     print_s " ${command}"
   )"

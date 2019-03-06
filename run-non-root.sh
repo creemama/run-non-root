@@ -439,23 +439,20 @@ main () {
   # "How do I parse command line arguments in Bash?"
   # https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash
 
-  # "How create a temporary file in shell script?"
-  # https://unix.stackexchange.com/questions/181937/how-create-a-temporary-file-in-shell-script
+  # "How to store standard error in a variable"
+  # https://stackoverflow.com/questions/962255/how-to-store-standard-error-in-a-variable
 
   # debug and quiet are not available yet.
   check_for_getopt 'y' 'y'
 
-  tmpfile="$(mktemp)"
-  local parsed_options="$(
+  local parsed_options
+  if ! parsed_options="$(
     getopt \
       --options=c:df:g:hip:qt:u:v \
       --longoptions=chown:,debug,gid:,group:,help,init,path:,quiet,uid:,user:,version \
       --name "$0" \
-      -- "$@" 2> "${tmpfile}"
-  )"
-  local getopt_warnings="$(cat "${tmpfile}")"
-  rm "${tmpfile}"
-  if [ -n "${getopt_warnings}" ]; then
+      -- "$@" 2>&1
+  )"; then
     exit_with_error 1 \
       "$(
         print_s 'There was an error parsing the given options. '
@@ -463,7 +460,7 @@ main () {
         print_s "(b) use -- to separate run-non-root's options "
         print_s 'from the command. '
         print_s 'Run run-non-root --help for more info. '
-        print_s "(From getopt: ${getopt_warnings})"
+        print_s "(From getopt: ${parsed_options})"
       )"
   fi
 

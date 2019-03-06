@@ -24,7 +24,7 @@ if [ -n "${BASH_VERSION:-}" ]; then
   set -o pipefail
 fi
 
-RUN_NON_ROOT_VERSION=1.5.0
+RUN_NON_ROOT_VERSION=1.5.1
 
 print_help () {
   cat << EOF

@@ -129,10 +129,10 @@ test () {
   exec 4< "${tmpfile}"
   rm "${tmpfile}"
 
-  test_image 'alpine:3.8' 'run-non-root -- ps aux' 'alpine'
+  test_image 'alpine:3.9' 'run-non-root -- ps aux' 'alpine'
   test_image 'centos:7' 'run-non-root -- ps aux' 'centos'
-  test_image 'debian:9.5' 'sh -c "apt-get update && apt-get install -y procps && run-non-root ps aux"' 'debian'
-  test_image 'fedora:28' 'sh -c "dnf install -y procps-ng && run-non-root ps aux"' 'fedora'
+  test_image 'debian:9.7' 'sh -c "apt-get update && apt-get install -y procps && run-non-root ps aux"' 'debian'
+  test_image 'fedora:29' 'sh -c "dnf install -y procps-ng && run-non-root ps aux"' 'fedora'
   test_image 'ubuntu:18.04' 'run-non-root -- ps aux' 'ubuntu'
 
   test_examples

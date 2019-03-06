@@ -131,7 +131,9 @@ add_group () {
     if test_group_exists "${username}"; then
       if [ "${username}" = 'nonroot' ]; then
         # The nonroot group already exists.
-        eval $return_gid="'$(id -gn ${nonroot})'"
+        eval $return_gid="'$(
+          getent group nonroot | awk -F ':' '{print $3}'
+        )'"
         eval $return_group_name="'nonroot'"
         return
       fi

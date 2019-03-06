@@ -1167,7 +1167,50 @@ test_image () {
       ;;
   esac
 
+  test_nonroot_group_already_exists "${os}"
+
   test_bare_image "${bare_image}" "${bare_image_command}"
+}
+
+test_nonroot_group_already_exists () {
+  local os="$1"
+
+  print_test_header 'Test nonroot group already exists.'
+
+  local actual=''
+  local docker_command=''
+
+  docker_command="$(
+    print_s 'docker run'
+    print_s ' --entrypoint /bin/sh'
+    print_s ' -it'
+    print_s ' --rm'
+    print_s " --volume $(pwd)/run-non-root.sh:/usr/local/bin/run-non-root:ro"
+    print_s " creemama/run-non-root:1.4.0-${os}"
+    print_s " -c \"groupadd nonroot && run-non-root -- true\""
+  )"
+  print_sn "$(output_green)Testing $(output_cyan)${docker_command}$(output_reset)$(output_green) ... $(output_reset)"
+  eval "${docker_command}" >&3 || printf "%s\n" "Exit Code: $?"
+  actual="$(cat <&4)"
+  print_snn "${actual}"
+  case "${os}" in
+    alpine|fedora)
+      assert_equals \
+        "Running ( exec su-exec nonroot:1000 true ) as uid=1000(nonroot) gid=1000(nonroot) groups=1000(nonroot) ..." \
+        "${actual}"
+      break
+      ;;
+    centos|debian|ubuntu)
+      assert_equals \
+        "[32mRunning ( exec su-exec nonroot:1000 [1mtrue(B[m[32m ) as uid=1000(nonroot) gid=1000(nonroot) groups=1000(nonroot) ...(B[m" \
+        "${actual}"
+      break
+      ;;
+    *)
+      print_sn "$(output_red)ERROR: We encountered an unexpected case ${case}.$(output_reset)"
+      exit 1
+      ;;
+  esac
 }
 
 test_options () {
